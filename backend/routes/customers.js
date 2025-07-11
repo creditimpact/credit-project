@@ -23,6 +23,16 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get single customer
+router.get('/:id', async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.params.id);
+    res.json(customer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Update customer
 router.put('/:id', async (req, res) => {
   try {
@@ -44,3 +54,4 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
+

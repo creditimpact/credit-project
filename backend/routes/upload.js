@@ -1,40 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const AWS = require('aws-sdk');
 const Customer = require('../models/Customer');
-const path = require('path');
-const fs = require('fs');
 
-// הגדרה לאחסון הקובץ זמנית בלוקאל
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '..', 'uploads');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath);
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  },
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// ראוט להעלאה
+const s3 = new AWS.S3({
+  region: process.env.AWS_REGION,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+});
+const BUCKET = process.env.AWS_S3_BUCKET;
+
 router.post('/:id', upload.single('file'), async (req, res) => {
   try {
     const customerId = req.params.id;
     const file = req.file;
-
     if (!file) return res.status(400).json({ error: 'No file uploaded' });
 
-    // נניח ששומרים את ה-path בלינק של creditReport
-    const fileUrl = `/uploads/${file.filename}`;
+    const key = `clients/${customerId}/credit_report.pdf`;
+    await s3
+      .putObject({ Bucket: BUCKET, Key: key, Body: file.buffer })
+      .promise();
 
-    await Customer.findByIdAndUpdate(customerId, { creditReport: fileUrl });
+    const url = `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
-    res.json({ message: 'File uploaded and customer updated', url: fileUrl });
+    await Customer.findByIdAndUpdate(customerId, { creditReport: url });
+    res.json({ message: 'File uploaded', url });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Upload failed' });
@@ -42,3 +36,4 @@ router.post('/:id', upload.single('file'), async (req, res) => {
 });
 
 module.exports = router;
+

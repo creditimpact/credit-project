@@ -3,32 +3,23 @@ const router = express.Router();
 const axios = require('axios');
 const Customer = require('../models/Customer');
 
-// Endpoint לעדכון סטטוס ולשליחת בקשה לבוט
+const BOT_URL = process.env.BOT_URL || 'http://localhost:6000/api/bot/process';
+
+// Update status and optionally trigger bot
 router.put('/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
   try {
-    // עדכון סטטוס ב-DB
     const customer = await Customer.findByIdAndUpdate(id, { status }, { new: true });
 
-    // אם סטטוס חדש הוא "In Progress", שולחים בקשה לבוט
     if (status === 'In Progress') {
-      // כאן תכניס כתובת ה-URL של ה-BOT שלך
-      const botUrl = 'http://localhost:6000/api/bot/process'; // עדכן לפי הצורך
-
       const payload = {
         clientId: customer._id,
         creditReportUrl: customer.creditReport,
-        instructions: {
-          strategy: 'aggressive',
-          // אפשר להוסיף עוד שדות לפי הצורך
-        },
+        instructions: { strategy: 'aggressive' },
       };
-
-      // שליחת קריאה לבוט
-      await axios.post(botUrl, payload);
-
+      await axios.post(BOT_URL, payload);
       console.log(`Sent to bot for customer ${customer.customerName}`);
     }
 
@@ -39,4 +30,21 @@ router.put('/:id/status', async (req, res) => {
   }
 });
 
+// Endpoint for bot to send results
+router.post('/result', async (req, res) => {
+  try {
+    const { clientId, letters } = req.body;
+    const customer = await Customer.findByIdAndUpdate(
+      clientId,
+      { status: 'Letters Created', letters },
+      { new: true }
+    );
+    res.json({ message: 'Customer updated', customer });
+  } catch (err) {
+    console.error('Error saving bot results:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
+
