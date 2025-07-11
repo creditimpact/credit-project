@@ -65,12 +65,16 @@ npm start
 
 ### Backend
 
-- `MONGO_URI` — your MongoDB connection string.
-- Storage variables (e.g., AWS S3 keys) if needed.
+- `MONGO_URI` — MongoDB connection string
+- `PORT` — port for the Node server (default 5000)
+- `BOT_URL` — URL to the bot service
+- `AWS_REGION`, `AWS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — storage credentials
 
 ### Bot
 
-- `.env` file if using API keys (e.g., OpenAI).
+- `BACKEND_URL` — URL to the backend callback endpoint
+- The same AWS variables as above if uploading to the same bucket
+- Any additional API keys (e.g., OpenAI) placed in `.env`
 
 ## 📄 Recommended start order
 
