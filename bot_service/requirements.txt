@@ -1,0 +1,15 @@
+flask
+gunicorn
+requests
+pdfplumber
+python-docx
+pydantic
+python-multipart
+reportlab
+PyPDF2
+openai
+pdfkit
+jinja2
+python-dotenv
+
+
