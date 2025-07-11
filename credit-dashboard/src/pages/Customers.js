@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import Chip from '@mui/material/Chip';
+import AddCustomerDialog from '../components/AddCustomerDialog';
 
 const columnsBase = [
   { field: 'customerName', headerName: 'Customer Name', width: 150, editable: true },
@@ -48,11 +47,10 @@ const columnsBase = [
 export default function Customers() {
   const [rows, setRows] = React.useState([]);
   const [open, setOpen] = React.useState(false);
-  const [newCustomer, setNewCustomer] = React.useState({});
+  const [newCustomer, setNewCustomer] = React.useState({ status: 'New' });
 
   const API_URL = "http://localhost:5000/api/customers";
 
-  // טעינת לקוחות מהשרת
   React.useEffect(() => {
     fetch(API_URL)
       .then(res => res.json())
@@ -60,7 +58,6 @@ export default function Customers() {
       .catch(err => console.error(err));
   }, []);
 
-  // עדכון לקוח
   const handleProcessRowUpdate = (newRow) => {
     fetch(`${API_URL}/${newRow.id}`, {
       method: "PUT",
@@ -74,7 +71,6 @@ export default function Customers() {
     return newRow;
   };
 
-  // הוספת לקוח חדש
   const handleAddCustomer = () => {
     fetch(API_URL, {
       method: "POST",
@@ -85,15 +81,12 @@ export default function Customers() {
       .then(data => {
         setRows((prev) => [...prev, data]);
         setOpen(false);
-        setNewCustomer({});
+        setNewCustomer({ status: 'New' });
       });
   };
 
-  // מחיקת לקוח
   const handleDeleteCustomer = (id) => {
-    fetch(`${API_URL}/${id}`, {
-      method: "DELETE",
-    })
+    fetch(`${API_URL}/${id}`, { method: "DELETE" })
       .then(res => res.json())
       .then(() => {
         setRows((prev) => prev.filter((row) => row.id !== id));
@@ -102,6 +95,13 @@ export default function Customers() {
 
   const columns = [
     ...columnsBase,
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 120,
+      renderCell: (params) => <Chip label={params.value} color={params.value === 'Completed' ? 'success' : 'info'} />,
+      editable: true,
+    },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -120,46 +120,30 @@ export default function Customers() {
   ];
 
   return (
-    <div style={{ height: 600, width: '100%', marginTop: 20 }}>
-      <h1>Customers</h1>
-
-      <div style={{ marginBottom: '10px' }}>
-        <Button variant="outlined" onClick={() => setOpen(true)}>
+    <Container sx={{ mt: 4 }}>
+      <Paper sx={{ p: 2 }}>
+        <Button variant="contained" sx={{ mb: 2 }} onClick={() => setOpen(true)}>
           Add Customer
         </Button>
-      </div>
-
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        pageSize={5}
-        rowsPerPageOptions={[5]}
-        processRowUpdate={handleProcessRowUpdate}
-        experimentalFeatures={{ newEditingApi: true }}
+        <div style={{ height: 600, width: '100%' }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            pageSize={5}
+            rowsPerPageOptions={[5]}
+            processRowUpdate={handleProcessRowUpdate}
+            experimentalFeatures={{ newEditingApi: true }}
+          />
+        </div>
+      </Paper>
+      <AddCustomerDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        onAdd={handleAddCustomer}
+        columns={[...columnsBase, { field: 'status', headerName: 'Status' }]}
+        value={newCustomer}
+        setValue={setNewCustomer}
       />
-
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Add New Customer</DialogTitle>
-        <DialogContent dividers>
-          {columnsBase.map((col) => (
-            <TextField
-              key={col.field}
-              margin="dense"
-              label={col.headerName}
-              fullWidth
-              variant="outlined"
-              value={newCustomer[col.field] || ''}
-              onChange={(e) =>
-                setNewCustomer({ ...newCustomer, [col.field]: e.target.value })
-              }
-            />
-          ))}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleAddCustomer}>Add</Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+    </Container>
   );
 }
