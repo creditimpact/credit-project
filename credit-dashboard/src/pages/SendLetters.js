@@ -1,5 +1,8 @@
 import * as React from 'react';
 import { DataGrid } from '@mui/x-data-grid';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
 
 const columns = [
   { field: 'customerName', headerName: 'Customer Name', width: 180 },
@@ -8,9 +11,7 @@ const columns = [
     headerName: 'Inquiry Removal Letter',
     width: 200,
     renderCell: (params) => (
-      <a href={params.value} target="_blank" rel="noopener noreferrer">
-        Download
-      </a>
+      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
     ),
   },
   {
@@ -18,9 +19,7 @@ const columns = [
     headerName: 'Charge-off Letter',
     width: 180,
     renderCell: (params) => (
-      <a href={params.value} target="_blank" rel="noopener noreferrer">
-        Download
-      </a>
+      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
     ),
   },
   {
@@ -28,9 +27,7 @@ const columns = [
     headerName: 'Collection Letter',
     width: 180,
     renderCell: (params) => (
-      <a href={params.value} target="_blank" rel="noopener noreferrer">
-        Download
-      </a>
+      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
     ),
   },
   {
@@ -38,9 +35,7 @@ const columns = [
     headerName: 'Goodwill Letter',
     width: 180,
     renderCell: (params) => (
-      <a href={params.value} target="_blank" rel="noopener noreferrer">
-        Download
-      </a>
+      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
     ),
   },
   {
@@ -48,9 +43,7 @@ const columns = [
     headerName: 'Custom Letter',
     width: 160,
     renderCell: (params) => (
-      <a href={params.value} target="_blank" rel="noopener noreferrer">
-        Download
-      </a>
+      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
     ),
   },
   {
@@ -58,15 +51,12 @@ const columns = [
     headerName: 'Method of Verification',
     width: 200,
     renderCell: (params) => (
-      <a href={params.value} target="_blank" rel="noopener noreferrer">
-        Download
-      </a>
+      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
     ),
   },
 ];
 
 export default function SendLetters() {
-  // דמו — בהמשך זה יגיע מהבוט
   const rows = [
     {
       id: 1,
@@ -91,14 +81,12 @@ export default function SendLetters() {
   ];
 
   return (
-    <div style={{ height: 600, width: '100%', marginTop: 20 }}>
-      <h1>Send Letters Today</h1>
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        pageSize={5}
-        rowsPerPageOptions={[5]}
-      />
-    </div>
+    <Container sx={{ mt: 4 }}>
+      <Paper sx={{ p: 2 }}>
+        <div style={{ height: 600, width: '100%' }}>
+          <DataGrid rows={rows} columns={columns} pageSize={5} rowsPerPageOptions={[5]} />
+        </div>
+      </Paper>
+    </Container>
   );
 }
