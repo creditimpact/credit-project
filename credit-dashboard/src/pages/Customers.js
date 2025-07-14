@@ -1,9 +1,11 @@
 import * as React from 'react';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
+import Snackbar from '@mui/material/Snackbar';
+import { Link } from 'react-router-dom';
 import AddCustomerDialog from '../components/AddCustomerDialog';
 
 const columnsBase = [
@@ -48,6 +50,7 @@ export default function Customers() {
   const [rows, setRows] = React.useState([]);
   const [open, setOpen] = React.useState(false);
   const [newCustomer, setNewCustomer] = React.useState({ status: 'New' });
+  const [snackbar, setSnackbar] = React.useState('');
 
   const API_URL = "http://localhost:5000/api/customers";
 
@@ -82,6 +85,7 @@ export default function Customers() {
         setRows((prev) => [...prev, data]);
         setOpen(false);
         setNewCustomer({ status: 'New' });
+        setSnackbar('Customer added');
       });
   };
 
@@ -90,6 +94,7 @@ export default function Customers() {
       .then(res => res.json())
       .then(() => {
         setRows((prev) => prev.filter((row) => row.id !== id));
+        setSnackbar('Customer deleted');
       });
   };
 
@@ -105,16 +110,26 @@ export default function Customers() {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 130,
+      width: 200,
       renderCell: (params) => (
-        <Button
-          variant="outlined"
-          color="error"
-          size="small"
-          onClick={() => handleDeleteCustomer(params.row.id)}
-        >
-          Delete
-        </Button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            component={Link}
+            to={`/customers/${params.row.id}`}
+          >
+            Details
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            onClick={() => handleDeleteCustomer(params.row.id)}
+          >
+            Delete
+          </Button>
+        </div>
       ),
     },
   ];
@@ -133,6 +148,7 @@ export default function Customers() {
             rowsPerPageOptions={[5]}
             processRowUpdate={handleProcessRowUpdate}
             experimentalFeatures={{ newEditingApi: true }}
+            slots={{ toolbar: GridToolbar }}
           />
         </div>
       </Paper>
@@ -144,6 +160,7 @@ export default function Customers() {
         value={newCustomer}
         setValue={setNewCustomer}
       />
+      <Snackbar open={Boolean(snackbar)} onClose={() => setSnackbar('')} message={snackbar} autoHideDuration={3000} />
     </Container>
   );
 }
