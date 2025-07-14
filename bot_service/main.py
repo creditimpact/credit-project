@@ -1,11 +1,19 @@
 import os
 import tempfile
 import requests
+import pdfplumber
+import openai
 from flask import Flask, request, jsonify
 from reportlab.pdfgen import canvas
 from services.storage_service import upload_file
 from services.backend_comm import send_results
 from config.settings import BOT_PORT
+from dotenv import load_dotenv
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if OPENAI_API_KEY:
+    openai.api_key = OPENAI_API_KEY
 
 app = Flask(__name__)
 
@@ -31,9 +39,22 @@ def process():
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as f:
             f.write(resp.content)
             report_path = f.name
-        # Generate a placeholder letter
+
+        # Parse first page for debugging purposes
+        with pdfplumber.open(report_path) as pdf:
+            _ = pdf.pages[0].extract_text()
+
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as f:
-            create_sample_letter('Dispute letter for ' + client_id, f.name)
+            if OPENAI_API_KEY:
+                response = openai.Completion.create(
+                    model="text-davinci-003",
+                    prompt=f"Write a credit dispute letter for client {client_id}",
+                    max_tokens=200,
+                )
+                text = response.choices[0].text.strip()
+            else:
+                text = "Dispute letter for " + client_id
+            create_sample_letter(text, f.name)
             letter_path = f.name
 
         # Upload letter

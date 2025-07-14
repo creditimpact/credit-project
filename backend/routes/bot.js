@@ -6,7 +6,7 @@ const Customer = require('../models/Customer');
 const BOT_URL = process.env.BOT_URL || 'http://localhost:6000/api/bot/process';
 
 // Update status and optionally trigger bot
-router.put('/:id/status', async (req, res) => {
+const updateStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -28,7 +28,10 @@ router.put('/:id/status', async (req, res) => {
     console.error('Error updating status or sending to bot:', error);
     res.status(500).json({ error: error.message });
   }
-});
+};
+
+router.put('/:id/status', updateStatus);
+router.patch('/:id/status', updateStatus);
 
 // Endpoint for bot to send results
 router.post('/result', async (req, res) => {

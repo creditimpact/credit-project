@@ -44,10 +44,8 @@ pip install -r requirements.txt
 #### Run the server
 
 ```bash
-python app.py
+python main.py
 ```
-
-> 💬 *Note: Make sure your main Python file is named `app.py`. If it has a different name, update the command accordingly.*
 
 ### ✅ Frontend (React)
 
@@ -62,6 +60,9 @@ npm start
 ```
 
 ## ⚙️ Environment variables
+
+Each service contains a `.env.example` file. Copy it to `.env` and adjust the
+values for your setup.
 
 ### Backend
 

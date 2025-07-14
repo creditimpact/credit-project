@@ -13,6 +13,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Basic env validation
+['MONGO_URI', 'BOT_URL'].forEach((key) => {
+  if (!process.env[key]) {
+    console.warn(`⚠️  Missing environment variable: ${key}`);
+  }
+});
+
 // MongoDB connection
 mongoose
   .connect(process.env.MONGO_URI)
@@ -30,6 +37,7 @@ const uploadRoutes = require('./routes/upload');
 const botRoutes = require('./routes/bot');
 
 app.use('/api/customers', customersRoutes);
+app.use('/api/clients', customersRoutes); // alias for convenience
 app.use('/api/upload', uploadRoutes);
 app.use('/api/bot', botRoutes);
 
@@ -38,4 +46,15 @@ app.use('/uploads', express.static('uploads'));
 
 app.get('/', (req, res) => {
   res.send('✅ Backend API is running!');
+});
+
+// 404 handler
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Not Found' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: err.message || 'Server error' });
 });
