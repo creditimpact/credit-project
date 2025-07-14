@@ -57,7 +57,10 @@ export default function Customers() {
   React.useEffect(() => {
     fetch(API_URL)
       .then(res => res.json())
-      .then(data => setRows(data))
+      .then(data => {
+        const mapped = data.map((c) => ({ ...c, id: c.id || c._id }));
+        setRows(mapped);
+      })
       .catch(err => console.error(err));
   }, []);
 
@@ -68,8 +71,9 @@ export default function Customers() {
       body: JSON.stringify(newRow),
     })
       .then(res => res.json())
-      .then(() => {
-        setRows((prev) => prev.map((row) => (row.id === newRow.id ? newRow : row)));
+      .then(data => {
+        const updated = { ...data, id: data.id || data._id };
+        setRows((prev) => prev.map((row) => (row.id === updated.id ? updated : row)));
       });
     return newRow;
   };
@@ -82,7 +86,8 @@ export default function Customers() {
     })
       .then(res => res.json())
       .then(data => {
-        setRows((prev) => [...prev, data]);
+        const mapped = { ...data, id: data.id || data._id };
+        setRows((prev) => [...prev, mapped]);
         setOpen(false);
         setNewCustomer({ status: 'New' });
         setSnackbar('Customer added');

@@ -41,6 +41,11 @@ app.use('/api/clients', customersRoutes); // alias for convenience
 app.use('/api/upload', uploadRoutes);
 app.use('/api/bot', botRoutes);
 
+// simple health endpoint
+app.get('/api/status', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // Static folder for uploaded files
 app.use('/uploads', express.static('uploads'));
 

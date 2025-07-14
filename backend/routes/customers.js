@@ -7,7 +7,9 @@ router.post('/', async (req, res) => {
   try {
     const newCustomer = new Customer(req.body);
     await newCustomer.save();
-    res.status(201).json(newCustomer);
+    const data = newCustomer.toObject();
+    data.id = data._id;
+    res.status(201).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -17,7 +19,8 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const customers = await Customer.find();
-    res.json(customers);
+    const mapped = customers.map((c) => ({ ...c.toObject(), id: c._id }));
+    res.json(mapped);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -27,7 +30,10 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const customer = await Customer.findById(req.params.id);
-    res.json(customer);
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
+    const data = customer.toObject();
+    data.id = data._id;
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -37,7 +43,10 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const updated = await Customer.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updated);
+    if (!updated) return res.status(404).json({ error: 'Customer not found' });
+    const data = updated.toObject();
+    data.id = data._id;
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -46,7 +55,8 @@ router.put('/:id', async (req, res) => {
 // Delete customer
 router.delete('/:id', async (req, res) => {
   try {
-    await Customer.findByIdAndDelete(req.params.id);
+    const deleted = await Customer.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Customer not found' });
     res.json({ message: 'Customer deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
