@@ -3,7 +3,9 @@ const router = express.Router();
 const axios = require('axios');
 const Customer = require('../models/Customer');
 
-const BOT_URL = process.env.BOT_URL || 'http://localhost:6000/api/bot/process';
+const BOT_PROCESS_URL =
+  process.env.BOT_PROCESS_URL || 'http://localhost:6000/api/bot/process';
+const BOT_START_URL = process.env.BOT_START_URL || 'http://localhost:6000/start';
 
 // Update status and optionally trigger bot
 const updateStatus = async (req, res) => {
@@ -21,7 +23,7 @@ const updateStatus = async (req, res) => {
         instructions: { strategy: 'aggressive' },
       };
       try {
-        await axios.post(BOT_URL, payload);
+        await axios.post(BOT_PROCESS_URL, payload);
         console.log(`Sent to bot for customer ${customer.customerName}`);
       } catch (err) {
         console.error('Bot request failed:', err.message);
@@ -37,6 +39,30 @@ const updateStatus = async (req, res) => {
 
 router.put('/:id/status', updateStatus);
 router.patch('/:id/status', updateStatus);
+
+// Manually start bot processing for a customer
+router.post('/start', async (req, res) => {
+  const { clientId, creditReportUrl } = req.body;
+  if (!clientId || !creditReportUrl) {
+    return res
+      .status(400)
+      .json({ error: 'clientId and creditReportUrl are required' });
+  }
+
+  try {
+    const customer = await Customer.findById(clientId);
+    if (!customer) {
+      return res.status(404).json({ error: 'Customer not found' });
+    }
+
+    await axios.post(BOT_START_URL, { clientId, creditReportUrl });
+    res.json({ message: 'Bot started' });
+  } catch (err) {
+    console.error('Error forwarding to bot:', err.message);
+    const status = err.response?.status || 500;
+    res.status(status).json({ error: 'Bot service error', detail: err.message });
+  }
+});
 
 // Endpoint for bot to send results
 router.post('/result', async (req, res) => {

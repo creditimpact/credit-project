@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Basic env validation
-['MONGO_URI', 'BOT_URL'].forEach((key) => {
+['MONGO_URI', 'BOT_PROCESS_URL', 'BOT_START_URL'].forEach((key) => {
   if (!process.env[key]) {
     console.warn(`⚠️  Missing environment variable: ${key}`);
   }

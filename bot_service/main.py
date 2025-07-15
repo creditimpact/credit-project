@@ -24,13 +24,11 @@ def create_sample_letter(text: str, output_path: str):
     c.save()
 
 
-@app.route('/api/bot/process', methods=['POST'])
-def process():
-    data = request.get_json()
+def _process_request(data: dict):
     client_id = data.get('clientId')
     report_url = data.get('creditReportUrl')
     if not client_id or not report_url:
-        return jsonify({'error': 'Invalid payload'}), 400
+        return jsonify({'error': 'clientId and creditReportUrl are required'}), 400
 
     try:
         # Download credit report
@@ -64,8 +62,22 @@ def process():
 
         send_results(client_id, letters)
         return jsonify({'status': 'processing'}), 200
+    except requests.RequestException as e:
+        return jsonify({'error': f'Unable to fetch credit report: {e}'}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/bot/process', methods=['POST'])
+def process():
+    data = request.get_json(force=True)
+    return _process_request(data)
+
+
+@app.route('/start', methods=['POST'])
+def start():
+    data = request.get_json(force=True)
+    return _process_request(data)
 
 
 if __name__ == '__main__':
