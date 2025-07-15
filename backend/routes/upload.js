@@ -74,7 +74,8 @@ router.delete('/:id', async (req, res) => {
       if (fs.existsSync(path)) fs.unlinkSync(path);
     }
 
-    customer.creditReport = undefined;
+    // Clear the creditReport field after deleting the file
+    customer.creditReport = null;
     await customer.save();
 
     res.json({ message: 'Credit report deleted' });
