@@ -68,7 +68,8 @@ values for your setup.
 
 - `MONGO_URI` — MongoDB connection string
 - `PORT` — port for the Node server (default 5000)
-- `BOT_URL` — URL to the bot service
+- `BOT_PROCESS_URL` — bot endpoint for processing requests
+- `BOT_START_URL` — endpoint to start or ping the bot service
 - `AWS_REGION`, `AWS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — storage credentials
 
 ### Bot
