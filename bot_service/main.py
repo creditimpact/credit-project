@@ -3,7 +3,7 @@ import tempfile
 import requests
 import pdfplumber
 from pathlib import Path
-import openai
+from openai import OpenAI
 from flask import Flask, request, jsonify
 from reportlab.pdfgen import canvas
 from services.storage_service import upload_file
@@ -14,8 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if OPENAI_API_KEY:
-    openai.api_key = OPENAI_API_KEY
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 app = Flask(__name__)
 
@@ -52,13 +51,20 @@ def process():
             print(f"[ℹ️] Fallback extracted {len(fallback_text)} characters")
 
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as f:
-            if OPENAI_API_KEY:
-                response = openai.Completion.create(
-                    model="text-davinci-003",
-                    prompt=f"Write a credit dispute letter for client {client_id}",
-                    max_tokens=200,
-                )
-                text = response.choices[0].text.strip()
+            if client:
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {"role": "system", "content": "Write a credit dispute letter"},
+                            {"role": "user", "content": f"For client {client_id}"},
+                        ],
+                        max_tokens=200,
+                    )
+                    text = response.choices[0].message.content.strip()
+                except Exception as e:
+                    print(f"[❌] OpenAI request failed: {e}")
+                    text = "Dispute letter for " + client_id
             else:
                 text = "Dispute letter for " + client_id
             create_sample_letter(text, f.name)

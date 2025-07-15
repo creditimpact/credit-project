@@ -7,7 +7,7 @@ pydantic
 python-multipart
 reportlab
 PyPDF2
-openai
+openai>=1.0.0
 pdfkit
 jinja2
 python-dotenv
