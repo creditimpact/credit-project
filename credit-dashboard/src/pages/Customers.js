@@ -68,7 +68,15 @@ export default function Customers() {
       .catch(err => console.error(err));
   }, []);
 
+  const requiredFields = ['customerName', 'phone', 'email', 'address', 'startDate'];
+
   const handleProcessRowUpdate = (newRow) => {
+    const missing = requiredFields.filter((f) => !newRow[f]);
+    if (missing.length) {
+      setSnackbar(`Missing: ${missing.join(', ')}`);
+      throw new Error('validation');
+    }
+
     const payload = { ...newRow };
     if (payload.startDate) payload.startDate = new Date(payload.startDate);
     fetch(`${API_URL}/${newRow.id}`, {
@@ -160,6 +168,7 @@ export default function Customers() {
             pageSize={5}
             rowsPerPageOptions={[5]}
             processRowUpdate={handleProcessRowUpdate}
+            onProcessRowUpdateError={(err) => setSnackbar(err.message)}
             experimentalFeatures={{ newEditingApi: true }}
             slots={{ toolbar: GridToolbar }}
           />
