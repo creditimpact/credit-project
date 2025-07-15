@@ -158,7 +158,7 @@ export default function Customers() {
       .then(() => {
         setRows((prev) =>
           prev.map((row) =>
-            row.id === id ? { ...row, creditReport: '' } : row
+            row.id === id ? { ...row, creditReport: null } : row
           )
         );
         setSnackbar('Report deleted');
@@ -174,7 +174,7 @@ export default function Customers() {
     renderCell: (params) => {
       const url = params.value;
       if (!url) {
-        return <span style={{ color: 'red' }}>צריך להעלות ריפורט</span>;
+        return <span style={{ color: 'red' }}>Need to upload a report</span>;
       }
       const fullUrl = url.startsWith('http') ? url : `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}` + url;
       return (
