@@ -21,7 +21,7 @@ app = Flask(__name__)
 
 def create_sample_letter(text: str, output_path: str):
     c = canvas.Canvas(output_path)
-    c.drawString(100, 750, text)
+    c.drawString(100, 750, text or "Default dispute letter content")
     c.save()
 
 
@@ -50,23 +50,29 @@ def process():
             fallback_text = extract_pdf_text_safe(Path(report_path), max_chars=1000)
             print(f"[ℹ️] Fallback extracted {len(fallback_text)} characters")
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as f:
-            if client:
-                try:
-                    response = client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[
-                            {"role": "system", "content": "Write a credit dispute letter"},
-                            {"role": "user", "content": f"For client {client_id}"},
-                        ],
-                        max_tokens=200,
-                    )
+        # Create dispute letter text
+        text = None
+        if client:
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "Write a credit dispute letter"},
+                        {"role": "user", "content": f"For client {client_id}"},
+                    ],
+                    max_tokens=200,
+                )
+                if response.choices and response.choices[0].message and response.choices[0].message.content:
                     text = response.choices[0].message.content.strip()
-                except Exception as e:
-                    print(f"[❌] OpenAI request failed: {e}")
-                    text = "Dispute letter for " + client_id
-            else:
-                text = "Dispute letter for " + client_id
+            except Exception as e:
+                print(f"[❌] OpenAI request failed: {e}")
+
+        # Fallback text if no valid response
+        if not text or not isinstance(text, str):
+            text = f"Dispute letter for {client_id}"
+
+        # Create PDF with letter text
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as f:
             create_sample_letter(text, f.name)
             letter_path = f.name
 
@@ -78,9 +84,9 @@ def process():
         send_results(client_id, letters)
         return jsonify({'status': 'processing'}), 200
     except Exception as e:
+        print(f"[❌] General error: {e}")
         return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=BOT_PORT)
-
