@@ -78,7 +78,7 @@ cron.schedule('*/5 * * * *', async () => {
     const customer = await Customer.findOne({
       startDate: { $gte: start, $lt: end },
       status: 'New',
-      sentToBot: { $ne: true },
+      botStatus: 'pending',
       creditReport: { $exists: true, $ne: '' },
     });
 
@@ -92,8 +92,10 @@ cron.schedule('*/5 * * * *', async () => {
     }
 
     customer.status = 'In Progress';
-    customer.sentToBot = true;
+    customer.botStatus = 'processing';
+    customer.botError = undefined;
     await customer.save();
+    console.log(`Set customer ${customer._id} botStatus to processing`);
 
     const payload = {
       clientId: customer._id,
@@ -110,6 +112,10 @@ cron.schedule('*/5 * * * *', async () => {
       console.log(`Sent to bot via cron for ${customer.customerName}`);
     } catch (err) {
       console.error('Cron bot request failed:', err.message);
+      customer.botStatus = 'failed';
+      customer.botError = err.message;
+      await customer.save();
+      console.log(`Set customer ${customer._id} botStatus to failed`);
     }
   } catch (err) {
     console.error('Cron job error:', err);
