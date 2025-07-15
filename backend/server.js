@@ -77,10 +77,19 @@ cron.schedule('*/5 * * * *', async () => {
 
     const customer = await Customer.findOne({
       startDate: { $gte: start, $lt: end },
-      $or: [{ sentToBot: { $exists: false } }, { sentToBot: false }],
+      status: 'New',
+      sentToBot: { $ne: true },
+      creditReport: { $exists: true, $ne: '' },
     });
 
     if (!customer) return;
+
+    const required = ['customerName', 'phone', 'email', 'address', 'creditReport'];
+    const missing = required.filter((f) => !customer[f]);
+    if (missing.length) {
+      console.warn(`Skipping customer ${customer._id}. Missing: ${missing.join(', ')}`);
+      return;
+    }
 
     customer.status = 'In Progress';
     customer.sentToBot = true;
@@ -89,6 +98,10 @@ cron.schedule('*/5 * * * *', async () => {
     const payload = {
       clientId: customer._id,
       creditReportUrl: customer.creditReport,
+      customerName: customer.customerName,
+      phone: customer.phone,
+      email: customer.email,
+      address: customer.address,
       instructions: { strategy: 'aggressive' },
     };
 

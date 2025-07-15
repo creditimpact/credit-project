@@ -5,6 +5,13 @@ const Customer = require('../models/Customer');
 // Create new customer
 router.post('/', async (req, res) => {
   try {
+    const required = ['customerName', 'phone', 'email', 'address', 'startDate'];
+    for (const field of required) {
+      if (!req.body[field]) {
+        return res.status(400).json({ error: `${field} is required` });
+      }
+    }
+
     const payload = { ...req.body };
     if (payload.startDate) payload.startDate = new Date(payload.startDate);
     const newCustomer = new Customer(payload);

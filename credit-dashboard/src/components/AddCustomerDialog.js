@@ -10,10 +10,14 @@ import Snackbar from '@mui/material/Snackbar';
 export default function AddCustomerDialog({ open, onClose, onAdd, columns, value, setValue }) {
   const [error, setError] = React.useState('');
 
+  const requiredFields = ['customerName', 'phone', 'email', 'address', 'startDate'];
+
   const handleAdd = () => {
-    if (!value.customerName) {
-      setError('Customer name required');
-      return;
+    for (const field of requiredFields) {
+      if (!value[field]) {
+        setError(`${field} required`);
+        return;
+      }
     }
     onAdd();
   };
@@ -29,6 +33,7 @@ export default function AddCustomerDialog({ open, onClose, onAdd, columns, value
               margin="dense"
               label={col.headerName}
               fullWidth
+              required={requiredFields.includes(col.field)}
               variant="outlined"
               type={col.field === 'startDate' ? 'date' : 'text'}
               value={col.field === 'startDate' && value[col.field] ? value[col.field].slice(0, 10) : value[col.field] || ''}
