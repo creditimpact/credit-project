@@ -63,12 +63,18 @@ router.patch('/:id/status', updateStatus);
 // Endpoint for bot to send results
 router.post('/result', async (req, res) => {
   try {
-    const { clientId, letters } = req.body;
-    const update = { status: 'Letters Created', botStatus: 'done' };
-    if (letters) update.letters = letters;
+    const { clientId, letters, error } = req.body;
+    let update;
+    if (error) {
+      update = { botStatus: 'failed', botError: error };
+    } else {
+      update = { status: 'Letters Created', botStatus: 'done' };
+      if (letters) update.letters = letters;
+    }
+
     const customer = await Customer.findByIdAndUpdate(clientId, update, { new: true });
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
-    console.log(`Set customer ${customer._id} botStatus to done`);
+    console.log(`Set customer ${customer._id} botStatus to ${update.botStatus}`);
     res.json({ message: 'Customer updated', customer });
   } catch (err) {
     console.error('Error saving bot results:', err);
