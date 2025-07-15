@@ -14,19 +14,23 @@ const updateStatus = async (req, res) => {
     const customer = await Customer.findByIdAndUpdate(id, { status }, { new: true });
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
 
-    if (status === 'In Progress') {
-      const payload = {
-        clientId: customer._id,
-        creditReportUrl: customer.creditReport,
-        instructions: { strategy: 'aggressive' },
-      };
-      try {
-        await axios.post(BOT_PROCESS_URL, payload);
-        console.log(`Sent to bot for customer ${customer.customerName}`);
-      } catch (err) {
-        console.error('Bot request failed:', err.message);
+      if (status === 'In Progress') {
+        const payload = {
+          clientId: customer._id,
+          creditReportUrl: customer.creditReport,
+          customerName: customer.customerName,
+          phone: customer.phone,
+          email: customer.email,
+          address: customer.address,
+          instructions: { strategy: 'aggressive' },
+        };
+        try {
+          await axios.post(BOT_PROCESS_URL, payload);
+          console.log(`Sent to bot for customer ${customer.customerName}`);
+        } catch (err) {
+          console.error('Bot request failed:', err.message);
+        }
       }
-    }
 
     res.json({ message: 'Status updated', customer });
   } catch (error) {
