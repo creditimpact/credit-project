@@ -8,7 +8,7 @@ import Snackbar from '@mui/material/Snackbar';
 import { Link } from 'react-router-dom';
 import AddCustomerDialog from '../components/AddCustomerDialog';
 
-const columnsBase = [
+const formColumns = [
   { field: 'customerName', headerName: 'Customer Name', width: 150, editable: true },
   { field: 'phone', headerName: 'Phone', width: 130, editable: true },
   { field: 'email', headerName: 'Email', width: 180, editable: true },
@@ -30,9 +30,6 @@ const columnsBase = [
     headerName: 'Credit Report Link',
     width: 180,
     editable: true,
-    renderCell: (params) => (
-      <a href={params.value} target="_blank" rel="noopener noreferrer">Report</a>
-    ),
   },
   { field: 'smartCreditInfo', headerName: 'SmartCredit Login Info', width: 180, editable: true },
   {
@@ -54,7 +51,8 @@ export default function Customers() {
   const [uploadId, setUploadId] = React.useState(null);
   const fileInputRef = React.useRef();
 
-  const API_URL = "http://localhost:5000/api/customers";
+  const BACKEND_URL = "http://localhost:5000";
+  const API_URL = `${BACKEND_URL}/api/customers`;
 
   React.useEffect(() => {
     fetch(API_URL)
@@ -125,7 +123,7 @@ export default function Customers() {
 
     const formData = new FormData();
     formData.append('file', file);
-    fetch(`http://localhost:5000/api/upload/${uploadId}`, {
+    fetch(`${BACKEND_URL}/api/upload/${uploadId}`, {
       method: 'POST',
       body: formData,
     })
@@ -154,8 +152,58 @@ export default function Customers() {
       });
   };
 
+  const handleDeleteReport = (id) => {
+    fetch(`${BACKEND_URL}/api/upload/${id}`, { method: 'DELETE' })
+      .then((res) => res.json())
+      .then(() => {
+        setRows((prev) =>
+          prev.map((row) =>
+            row.id === id ? { ...row, creditReport: '' } : row
+          )
+        );
+        setSnackbar('Report deleted');
+      })
+      .catch(() => setSnackbar('Delete failed'));
+  };
+
+  const creditReportColumn = {
+    field: 'creditReport',
+    headerName: 'Credit Report Link',
+    width: 220,
+    editable: true,
+    renderCell: (params) => {
+      const url = params.value;
+      if (!url) {
+        return <span style={{ color: 'red' }}>צריך להעלות ריפורט</span>;
+      }
+      const fullUrl = url.startsWith('http') ? url : `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}` + url;
+      return (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            variant="text"
+            size="small"
+            component="a"
+            href={fullUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Report
+          </Button>
+          <Button
+            variant="text"
+            color="error"
+            size="small"
+            onClick={() => handleDeleteReport(params.row.id)}
+          >
+            Delete Report
+          </Button>
+        </div>
+      );
+    },
+  };
+
   const columns = [
-    ...columnsBase,
+    ...formColumns.map((c) => (c.field === 'creditReport' ? creditReportColumn : c)),
     {
       field: 'status',
       headerName: 'Status',
@@ -223,7 +271,7 @@ export default function Customers() {
         open={open}
         onClose={() => setOpen(false)}
         onAdd={handleAddCustomer}
-        columns={[...columnsBase, { field: 'status', headerName: 'Status' }]}
+        columns={[...formColumns, { field: 'status', headerName: 'Status' }]}
         value={newCustomer}
         setValue={setNewCustomer}
       />

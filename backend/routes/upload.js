@@ -50,4 +50,38 @@ router.post('/:id', upload.single('file'), async (req, res) => {
   }
 });
 
+// Delete a credit report
+router.delete('/:id', async (req, res) => {
+  try {
+    const customerId = req.params.id;
+    const customer = await Customer.findById(customerId);
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
+
+    const url = customer.creditReport;
+    if (!url) return res.status(400).json({ error: 'No credit report to delete' });
+
+    if (process.env.AWS_S3_BUCKET && url.includes('amazonaws.com')) {
+      const s3 = new AWS.S3({
+        region: process.env.AWS_REGION,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      });
+      const key = new URL(url).pathname.slice(1);
+      await s3.deleteObject({ Bucket: process.env.AWS_S3_BUCKET, Key: key }).promise();
+    } else {
+      const filename = url.split('/').pop();
+      const path = `./uploads/${filename}`;
+      if (fs.existsSync(path)) fs.unlinkSync(path);
+    }
+
+    customer.creditReport = undefined;
+    await customer.save();
+
+    res.json({ message: 'Credit report deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
+
 module.exports = router;
