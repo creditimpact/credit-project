@@ -4,13 +4,7 @@ import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
 
-const getTodayDate = () => {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-};
+
 
 const columns = [
   { field: 'customerName', headerName: 'Customer Name', width: 150 },
@@ -54,50 +48,30 @@ const columns = [
 ];
 
 export default function WorkToday() {
-  const today = getTodayDate();
+  const [rows, setRows] = React.useState([]);
+  const API_URL = 'http://localhost:5000/api/customers/today';
 
-  const [rows] = React.useState([
-    {
-      id: 1,
-      customerName: 'John Doe',
-      phone: '123-456-7890',
-      email: 'john@example.com',
-      address: '123 Main St',
-      startDate: today,
-      roundNumber: 1,
-      notes: 'Priority',
-      issueDetails: 'https://docs.google.com/some-issue-doc',
-      creditReport: 'https://example.com/report.pdf',
-      smartCreditInfo: 'john_smart_login',
-      fullFile: 'https://docs.google.com/some-file',
-      status: 'In Progress',
-    },
-    {
-      id: 2,
-      customerName: 'Jane Smith',
-      phone: '987-654-3210',
-      email: 'jane@example.com',
-      address: '456 Elm St',
-      startDate: '2024-06-01',
-      roundNumber: 2,
-      notes: '',
-      issueDetails: 'https://docs.google.com/issue-doc-2',
-      creditReport: 'https://example.com/report2.pdf',
-      smartCreditInfo: 'jane_smart_login',
-      fullFile: 'https://docs.google.com/file2',
-      status: 'Pending',
-    },
-  ]);
-
-  const todayRows = rows.filter((row) => row.startDate === today);
+  React.useEffect(() => {
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        const mapped = data.map((c) => ({
+          ...c,
+          id: c.id || c._id,
+          startDate: c.startDate ? c.startDate.slice(0, 10) : ''
+        }));
+        setRows(mapped);
+      })
+      .catch(err => console.error(err));
+  }, []);
 
   return (
     <Container sx={{ mt: 4 }}>
       <Paper sx={{ p: 2 }}>
         <div style={{ height: 600, width: '100%' }}>
-          <DataGrid rows={todayRows} columns={columns} pageSize={5} rowsPerPageOptions={[5]} />
+          <DataGrid rows={rows} columns={columns} pageSize={5} rowsPerPageOptions={[5]} />
         </div>
-        {todayRows.length === 0 && <p>No customers to work on today 🎉</p>}
+        {rows.length === 0 && <p>No customers to work on today 🎉</p>}
       </Paper>
     </Container>
   );

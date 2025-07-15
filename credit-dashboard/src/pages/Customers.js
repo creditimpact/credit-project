@@ -58,17 +58,23 @@ export default function Customers() {
     fetch(API_URL)
       .then(res => res.json())
       .then(data => {
-        const mapped = data.map((c) => ({ ...c, id: c.id || c._id }));
+        const mapped = data.map((c) => ({
+          ...c,
+          id: c.id || c._id,
+          startDate: c.startDate ? c.startDate.slice(0, 10) : ''
+        }));
         setRows(mapped);
       })
       .catch(err => console.error(err));
   }, []);
 
   const handleProcessRowUpdate = (newRow) => {
+    const payload = { ...newRow };
+    if (payload.startDate) payload.startDate = new Date(payload.startDate);
     fetch(`${API_URL}/${newRow.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newRow),
+      body: JSON.stringify(payload),
     })
       .then(res => res.json())
       .then(data => {
@@ -79,10 +85,12 @@ export default function Customers() {
   };
 
   const handleAddCustomer = () => {
+    const payload = { ...newCustomer };
+    if (payload.startDate) payload.startDate = new Date(payload.startDate);
     fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newCustomer),
+      body: JSON.stringify(payload),
     })
       .then(res => res.json())
       .then(data => {
