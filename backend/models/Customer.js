@@ -5,7 +5,7 @@ const CustomerSchema = new mongoose.Schema({
   phone: String,
   email: String,
   address: String,
-  startDate: String,
+  startDate: Date,
   roundNumber: Number,
   notes: String,
   issueDetails: String,

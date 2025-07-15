@@ -30,7 +30,8 @@ export default function AddCustomerDialog({ open, onClose, onAdd, columns, value
               label={col.headerName}
               fullWidth
               variant="outlined"
-              value={value[col.field] || ''}
+              type={col.field === 'startDate' ? 'date' : 'text'}
+              value={col.field === 'startDate' && value[col.field] ? value[col.field].slice(0, 10) : value[col.field] || ''}
               onChange={(e) => setValue({ ...value, [col.field]: e.target.value })}
             />
           ))}
