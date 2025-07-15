@@ -52,17 +52,23 @@ export default function WorkToday() {
   const API_URL = 'http://localhost:5000/api/customers/today';
 
   React.useEffect(() => {
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(data => {
-        const mapped = data.map((c) => ({
-          ...c,
-          id: c.id || c._id,
-          startDate: c.startDate ? c.startDate.slice(0, 10) : ''
-        }));
-        setRows(mapped);
-      })
-      .catch(err => console.error(err));
+    const fetchData = () => {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          const mapped = data.map((c) => ({
+            ...c,
+            id: c.id || c._id,
+            startDate: c.startDate ? c.startDate.slice(0, 10) : ''
+          }));
+          setRows(mapped);
+        })
+        .catch(err => console.error(err));
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (

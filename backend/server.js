@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const cron = require('node-cron');
+const axios = require('axios');
+const Customer = require('./models/Customer');
 
 dotenv.config();
 
@@ -62,4 +65,40 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: err.message || 'Server error' });
+});
+
+// Cron job to process one customer from the "Work Today" list every 5 minutes
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+
+    const customer = await Customer.findOne({
+      startDate: { $gte: start, $lt: end },
+      $or: [{ sentToBot: { $exists: false } }, { sentToBot: false }],
+    });
+
+    if (!customer) return;
+
+    customer.status = 'In Progress';
+    customer.sentToBot = true;
+    await customer.save();
+
+    const payload = {
+      clientId: customer._id,
+      creditReportUrl: customer.creditReport,
+      instructions: { strategy: 'aggressive' },
+    };
+
+    try {
+      await axios.post(process.env.BOT_PROCESS_URL, payload);
+      console.log(`Sent to bot via cron for ${customer.customerName}`);
+    } catch (err) {
+      console.error('Cron bot request failed:', err.message);
+    }
+  } catch (err) {
+    console.error('Cron job error:', err);
+  }
 });
