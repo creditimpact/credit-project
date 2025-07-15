@@ -77,21 +77,25 @@ cron.schedule('*/5 * * * *', async () => {
 
     const customer = await Customer.findOne({
       startDate: { $gte: start, $lt: end },
-      status: 'New',
+      status: 'In Progress',
       botStatus: 'pending',
       creditReport: { $exists: true, $ne: '' },
     });
 
     if (!customer) return;
 
-    const required = ['customerName', 'phone', 'email', 'address', 'creditReport'];
+    const required = ['customerName', 'phone', 'email', 'address'];
     const missing = required.filter((f) => !customer[f]);
     if (missing.length) {
       console.warn(`Skipping customer ${customer._id}. Missing: ${missing.join(', ')}`);
       return;
     }
 
-    customer.status = 'In Progress';
+    if (!customer.creditReport) {
+      console.log(`Skipping bot for ${customer.customerName}: missing credit report`);
+      return;
+    }
+
     customer.botStatus = 'processing';
     customer.botError = undefined;
     await customer.save();

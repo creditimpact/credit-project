@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const AWS = require('aws-sdk');
 const Customer = require('../models/Customer');
 
 // Create new customer
@@ -95,10 +97,31 @@ router.put('/:id', async (req, res) => {
 // Delete customer by ID
 router.delete('/:id', async (req, res) => {
   try {
-    const deleted = await Customer.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: 'Customer not found' });
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
+
+    if (customer.creditReport) {
+      const url = customer.creditReport;
+      if (process.env.AWS_S3_BUCKET && url.includes('amazonaws.com')) {
+        const s3 = new AWS.S3({
+          region: process.env.AWS_REGION,
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        });
+        const key = new URL(url).pathname.slice(1);
+        await s3.deleteObject({ Bucket: process.env.AWS_S3_BUCKET, Key: key }).promise();
+      } else {
+        const filename = url.split('/').pop();
+        const path = `./uploads/${filename}`;
+        if (fs.existsSync(path)) fs.unlinkSync(path);
+      }
+    }
+
+    await Customer.findByIdAndDelete(req.params.id);
+
     res.json({ message: 'Customer deleted' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
