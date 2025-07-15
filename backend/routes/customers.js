@@ -23,30 +23,39 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single customer
+// Get single customer by clientId
 router.get('/:id', async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findOne({ clientId: req.params.id });
+    if (!customer) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
     res.json(customer);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Update customer
+// Update customer by clientId
 router.put('/:id', async (req, res) => {
   try {
-    const updated = await Customer.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updated = await Customer.findOneAndUpdate({ clientId: req.params.id }, req.body, { new: true });
+    if (!updated) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Delete customer
+// Delete customer by clientId
 router.delete('/:id', async (req, res) => {
   try {
-    await Customer.findByIdAndDelete(req.params.id);
+    const deleted = await Customer.findOneAndDelete({ clientId: req.params.id });
+    if (!deleted) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
     res.json({ message: 'Customer deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -54,4 +63,3 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
-

@@ -11,13 +11,13 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "aws-sdk": "^2.1565.0",
     "axios": "^1.10.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.2",
-    "multer": "^2.0.1",
-    "dotenv": "^16.1.4",
-    "aws-sdk": "^2.1565.0"
+    "multer": "^2.0.1"
   }
 }
