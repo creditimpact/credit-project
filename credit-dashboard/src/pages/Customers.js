@@ -51,6 +51,8 @@ export default function Customers() {
   const [open, setOpen] = React.useState(false);
   const [newCustomer, setNewCustomer] = React.useState({ status: 'New' });
   const [snackbar, setSnackbar] = React.useState('');
+  const [uploadId, setUploadId] = React.useState(null);
+  const fileInputRef = React.useRef();
 
   const API_URL = "http://localhost:5000/api/customers";
 
@@ -110,6 +112,39 @@ export default function Customers() {
       });
   };
 
+  const handleUploadClick = (id) => {
+    setUploadId(id);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file || !uploadId) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    fetch(`http://localhost:5000/api/upload/${uploadId}`, {
+      method: 'POST',
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setRows((prev) =>
+          prev.map((row) =>
+            row.id === uploadId ? { ...row, creditReport: data.url } : row
+          )
+        );
+        setSnackbar('Credit report uploaded successfully ✅');
+      })
+      .catch(() => setSnackbar('Upload failed'))
+      .finally(() => {
+        e.target.value = '';
+        setUploadId(null);
+      });
+  };
+
   const handleDeleteCustomer = (id) => {
     fetch(`${API_URL}/${id}`, { method: "DELETE" })
       .then(res => res.json())
@@ -144,12 +179,22 @@ export default function Customers() {
           </Button>
           <Button
             variant="outlined"
+            size="small"
+            onClick={() => handleUploadClick(params.row.id)}
+          >
+            Upload Report
+          </Button>
+          <Button
+            variant="outlined"
             color="error"
             size="small"
             onClick={() => handleDeleteCustomer(params.row.id)}
           >
             Delete
           </Button>
+          {params.row.creditReport && (
+            <Chip label="Report uploaded" color="success" size="small" />
+          )}
         </div>
       ),
     },
@@ -183,6 +228,13 @@ export default function Customers() {
         setValue={setNewCustomer}
       />
       <Snackbar open={Boolean(snackbar)} onClose={() => setSnackbar('')} message={snackbar} autoHideDuration={3000} />
+      <input
+        type="file"
+        accept="application/pdf"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
     </Container>
   );
 }
