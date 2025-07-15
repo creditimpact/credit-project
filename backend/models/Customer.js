@@ -13,7 +13,12 @@ const CustomerSchema = new mongoose.Schema({
   smartCreditInfo: String,
   fullFile: String,
   status: { type: String, default: 'New' },
-  sentToBot: { type: Boolean, default: false },
+  botStatus: {
+    type: String,
+    enum: ['pending', 'processing', 'failed', 'done'],
+    default: 'pending'
+  },
+  botError: String,
   letters: [
     {
       name: String,

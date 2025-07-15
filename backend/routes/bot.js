@@ -25,10 +25,19 @@ const updateStatus = async (req, res) => {
           instructions: { strategy: 'aggressive' },
         };
         try {
+          customer.botStatus = 'processing';
+          customer.botError = undefined;
+          await customer.save();
+          console.log(`Set customer ${customer._id} botStatus to processing`);
+
           await axios.post(BOT_PROCESS_URL, payload);
           console.log(`Sent to bot for customer ${customer.customerName}`);
         } catch (err) {
           console.error('Bot request failed:', err.message);
+          customer.botStatus = 'failed';
+          customer.botError = err.message;
+          await customer.save();
+          console.log(`Set customer ${customer._id} botStatus to failed`);
         }
       }
 
@@ -46,12 +55,11 @@ router.patch('/:id/status', updateStatus);
 router.post('/result', async (req, res) => {
   try {
     const { clientId, letters } = req.body;
-    const customer = await Customer.findByIdAndUpdate(
-      clientId,
-      { status: 'Letters Created', letters },
-      { new: true }
-    );
+    const update = { status: 'Letters Created', botStatus: 'done' };
+    if (letters) update.letters = letters;
+    const customer = await Customer.findByIdAndUpdate(clientId, update, { new: true });
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
+    console.log(`Set customer ${customer._id} botStatus to done`);
     res.json({ message: 'Customer updated', customer });
   } catch (err) {
     console.error('Error saving bot results:', err);
