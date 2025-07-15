@@ -2,11 +2,13 @@ import os
 import tempfile
 import requests
 import pdfplumber
+from pathlib import Path
 import openai
 from flask import Flask, request, jsonify
 from reportlab.pdfgen import canvas
 from services.storage_service import upload_file
 from services.backend_comm import send_results
+from logic.utils import extract_pdf_text_safe
 from config.settings import BOT_PORT
 from dotenv import load_dotenv
 
@@ -40,9 +42,14 @@ def process():
             f.write(resp.content)
             report_path = f.name
 
-        # Parse first page for debugging purposes
-        with pdfplumber.open(report_path) as pdf:
-            _ = pdf.pages[0].extract_text()
+        # Parse first page for debugging purposes with a fallback
+        try:
+            with pdfplumber.open(report_path) as pdf:
+                _ = pdf.pages[0].extract_text()
+        except Exception as e:
+            print(f"[⚠️] pdfplumber failed to open report: {e}")
+            fallback_text = extract_pdf_text_safe(Path(report_path), max_chars=1000)
+            print(f"[ℹ️] Fallback extracted {len(fallback_text)} characters")
 
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as f:
             if OPENAI_API_KEY:
