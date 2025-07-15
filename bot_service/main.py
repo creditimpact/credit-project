@@ -41,14 +41,19 @@ def process():
             f.write(resp.content)
             report_path = f.name
 
-        # Parse first page for debugging purposes with a fallback
+        # Parse a snippet of the report text so we can feed it to GPT if needed
+        report_text = ""
         try:
             with pdfplumber.open(report_path) as pdf:
-                _ = pdf.pages[0].extract_text()
+                for page in pdf.pages:
+                    page_text = page.extract_text() or ""
+                    report_text += page_text
+                    if len(report_text) >= 1000:
+                        break
         except Exception as e:
             print(f"[⚠️] pdfplumber failed to open report: {e}")
-            fallback_text = extract_pdf_text_safe(Path(report_path), max_chars=1000)
-            print(f"[ℹ️] Fallback extracted {len(fallback_text)} characters")
+            report_text = extract_pdf_text_safe(Path(report_path), max_chars=1000)
+            print(f"[ℹ️] Fallback extracted {len(report_text)} characters")
 
         # Create dispute letter text
         text = None
@@ -58,11 +63,18 @@ def process():
                     model="gpt-4o",
                     messages=[
                         {"role": "system", "content": "Write a credit dispute letter"},
-                        {"role": "user", "content": f"For client {client_id}"},
+                        {
+                            "role": "user",
+                            "content": f"For client {client_id}. Here is the credit report snippet:\n{report_text[:1000]}",
+                        },
                     ],
                     max_tokens=200,
                 )
-                if response.choices and response.choices[0].message and response.choices[0].message.content:
+                if (
+                    response.choices
+                    and response.choices[0].message
+                    and response.choices[0].message.content
+                ):
                     text = response.choices[0].message.content.strip()
             except Exception as e:
                 print(f"[❌] OpenAI request failed: {e}")
