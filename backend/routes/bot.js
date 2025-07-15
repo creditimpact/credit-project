@@ -3,7 +3,7 @@ const router = express.Router();
 const axios = require('axios');
 const Customer = require('../models/Customer');
 
-const BOT_URL = process.env.BOT_URL || 'http://localhost:6000/api/bot/process';
+const BOT_PROCESS_URL = process.env.BOT_PROCESS_URL || 'http://localhost:6000/api/bot/process';
 
 // Update status and optionally trigger bot
 const updateStatus = async (req, res) => {
@@ -21,7 +21,7 @@ const updateStatus = async (req, res) => {
         instructions: { strategy: 'aggressive' },
       };
       try {
-        await axios.post(BOT_URL, payload);
+        await axios.post(BOT_PROCESS_URL, payload);
         console.log(`Sent to bot for customer ${customer.customerName}`);
       } catch (err) {
         console.error('Bot request failed:', err.message);
