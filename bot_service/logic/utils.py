@@ -681,6 +681,10 @@ def convert_txts_to_pdfs(folder: Path):
 
 def extract_pdf_text_safe(pdf_path: Path, max_chars: int = 4000) -> str:
     """Extract text from a PDF using pdfplumber with a fitz fallback."""
+    if not pdf_path or not Path(pdf_path).exists():
+        print(f"[⚠️] Invalid PDF path: {pdf_path}")
+        return ""
+
     try:
         with pdfplumber.open(pdf_path) as pdf:
             parts = []
