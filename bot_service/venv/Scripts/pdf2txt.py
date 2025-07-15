@@ -1,4 +1,4 @@
-#!C:\Users\yedid\Desktop\credit project\bot_service\venv\Scripts\python.exe
+#!C:\Users\200el\OneDrive\credit-project\bot_service\venv\Scripts\python.exe
 """A command line tool for extracting text and images from PDF and
 output it to plain text, html, xml or tags.
 """

@@ -1,4 +1,4 @@
-#!C:\Users\yedid\Desktop\credit project\bot_service\venv\Scripts\python.exe
+#!C:\Users\200el\OneDrive\credit-project\bot_service\venv\Scripts\python.exe
 """Extract pdf structure in XML format"""
 
 import logging
