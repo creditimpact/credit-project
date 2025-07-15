@@ -11,6 +11,10 @@ from services.backend_comm import send_results
 from logic.utils import extract_pdf_text_safe
 from config.settings import BOT_PORT
 from dotenv import load_dotenv
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -33,32 +37,39 @@ def process():
     if not client_id or not report_url:
         return jsonify({'error': 'Invalid payload'}), 400
 
+    logger.info("Processing report for client %s", client_id)
+
     try:
         # Download credit report
+        logger.info("Downloading report from %s", report_url)
         resp = requests.get(report_url, timeout=10)
         resp.raise_for_status()
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as f:
             f.write(resp.content)
             report_path = f.name
+        logger.info("Saved report to %s (%d bytes)", report_path, len(resp.content))
 
         # Parse a snippet of the report text so we can feed it to GPT if needed
         report_text = ""
         try:
+            logger.info("Parsing PDF with pdfplumber")
             with pdfplumber.open(report_path) as pdf:
+                logger.info("PDF opened, %d pages", len(pdf.pages))
                 for page in pdf.pages:
                     page_text = page.extract_text() or ""
                     report_text += page_text
                     if len(report_text) >= 1000:
                         break
         except Exception as e:
-            print(f"[⚠️] pdfplumber failed to open report: {e}")
+            logger.warning("pdfplumber failed: %s", e)
             report_text = extract_pdf_text_safe(Path(report_path), max_chars=1000)
-            print(f"[ℹ️] Fallback extracted {len(report_text)} characters")
+            logger.info("Fallback extracted %d characters", len(report_text))
 
         # Create dispute letter text
         text = None
         if client:
             try:
+                logger.info("Calling OpenAI with %d character prompt", len(report_text))
                 response = client.chat.completions.create(
                     model="gpt-4o",
                     messages=[
@@ -76,27 +87,32 @@ def process():
                     and response.choices[0].message.content
                 ):
                     text = response.choices[0].message.content.strip()
+                    logger.info("Received OpenAI response (%d chars)", len(text))
             except Exception as e:
-                print(f"[❌] OpenAI request failed: {e}")
+                logger.error("OpenAI request failed: %s", e)
 
         # Fallback text if no valid response
         if not text or not isinstance(text, str):
             text = f"Dispute letter for {client_id}"
+            logger.info("Using fallback letter text")
 
         # Create PDF with letter text
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as f:
             create_sample_letter(text, f.name)
             letter_path = f.name
+        logger.info("Generated letter PDF at %s", letter_path)
 
         # Upload letter
         key = f"clients/{client_id}/dispute_letter.pdf"
         url = upload_file(letter_path, key)
+        logger.info("Uploaded letter to %s", url)
         letters = [{'name': 'dispute_letter.pdf', 'url': url}]
 
         send_results(client_id, letters)
+        logger.info("Results sent to backend")
         return jsonify({'status': 'processing'}), 200
     except Exception as e:
-        print(f"[❌] General error: {e}")
+        logger.exception("General error processing report")
         return jsonify({'error': str(e)}), 500
 
 

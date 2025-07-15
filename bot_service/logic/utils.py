@@ -3,6 +3,9 @@ from fpdf import FPDF
 import pdfplumber
 import fitz
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 BUREAUS = ["Experian", "Equifax", "TransUnion"]
 
@@ -682,14 +685,15 @@ def convert_txts_to_pdfs(folder: Path):
 def extract_pdf_text_safe(pdf_path: Path | str | None, max_chars: int = 4000) -> str:
     """Extract text from a PDF using pdfplumber with a fitz fallback."""
     if not pdf_path:
-        print(f"[⚠️] Invalid PDF path: {pdf_path}")
+        logger.warning("Invalid PDF path provided: %s", pdf_path)
         return ""
 
     path = Path(pdf_path)
     if not path.exists():
-        print(f"[⚠️] Invalid PDF path: {pdf_path}")
+        logger.warning("Invalid PDF path provided: %s", pdf_path)
         return ""
 
+    logger.debug("Opening PDF with pdfplumber: %s", path)
     try:
         with pdfplumber.open(path) as pdf:
             parts = []
@@ -701,10 +705,12 @@ def extract_pdf_text_safe(pdf_path: Path | str | None, max_chars: int = 4000) ->
                     break
             joined = "\n".join(parts)
             if joined:
+                logger.debug("Extracted %d chars using pdfplumber", len(joined))
                 return joined[:max_chars]
     except Exception as e:
-        print(f"[⚠️] pdfplumber failed for {pdf_path}: {e}")
+        logger.warning("pdfplumber failed for %s: %s", pdf_path, e)
 
+    logger.debug("Falling back to PyMuPDF for: %s", path)
     try:
         doc = fitz.open(path)
         text = ""
@@ -713,9 +719,10 @@ def extract_pdf_text_safe(pdf_path: Path | str | None, max_chars: int = 4000) ->
             if len(text) >= max_chars:
                 break
         doc.close()
+        logger.debug("Fallback extracted %d chars", len(text))
         return text[:max_chars]
     except Exception as e:
-        print(f"[❌] Fallback extraction failed for {pdf_path}: {e}")
+        logger.error("Fallback extraction failed for %s: %s", pdf_path, e)
         return ""
 
 
@@ -746,7 +753,7 @@ def gather_supporting_docs(
             continue
         for pdf_path in sorted(folder.glob("*.pdf")):
             if total_len >= max_chars:
-                print(f"[⚠️] Reached max characters, truncating remaining docs.")
+                logger.warning("Reached max characters, truncating remaining docs.")
                 break
             try:
                 raw_text = extract_pdf_text_safe(pdf_path, 1500)
@@ -760,9 +767,9 @@ def gather_supporting_docs(
                     doc_snippets[pdf_path.name] = snippet
                     total_len += len(summary) + 1
                 filenames.append(pdf_path.name)
-                print(f"[📎] Parsed supporting doc: {pdf_path.name}")
+                logger.info("Parsed supporting doc: %s", pdf_path.name)
             except Exception as e:
-                print(f"[⚠️] Failed to parse {pdf_path.name}: {e}")
+                logger.warning("Failed to parse %s: %s", pdf_path.name, e)
                 continue
         if total_len >= max_chars:
             break
@@ -770,7 +777,7 @@ def gather_supporting_docs(
     combined = "\n".join(summaries)
     if len(combined) > max_chars:
         combined = combined[:max_chars]
-        print("[⚠️] Combined supporting docs summary truncated due to length.")
+        logger.warning("Combined supporting docs summary truncated due to length.")
 
     return combined.strip(), filenames, doc_snippets
 
