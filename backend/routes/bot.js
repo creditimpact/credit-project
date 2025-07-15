@@ -12,6 +12,7 @@ const updateStatus = async (req, res) => {
 
   try {
     const customer = await Customer.findByIdAndUpdate(id, { status }, { new: true });
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
 
     if (status === 'In Progress') {
       const payload = {
@@ -19,8 +20,12 @@ const updateStatus = async (req, res) => {
         creditReportUrl: customer.creditReport,
         instructions: { strategy: 'aggressive' },
       };
-      await axios.post(BOT_URL, payload);
-      console.log(`Sent to bot for customer ${customer.customerName}`);
+      try {
+        await axios.post(BOT_URL, payload);
+        console.log(`Sent to bot for customer ${customer.customerName}`);
+      } catch (err) {
+        console.error('Bot request failed:', err.message);
+      }
     }
 
     res.json({ message: 'Status updated', customer });
@@ -42,6 +47,7 @@ router.post('/result', async (req, res) => {
       { status: 'Letters Created', letters },
       { new: true }
     );
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
     res.json({ message: 'Customer updated', customer });
   } catch (err) {
     console.error('Error saving bot results:', err);

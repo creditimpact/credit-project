@@ -27,7 +27,8 @@ router.post('/:id', upload.single('file'), async (req, res) => {
 
     const url = `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
-    await Customer.findByIdAndUpdate(customerId, { creditReport: url });
+    const customer = await Customer.findByIdAndUpdate(customerId, { creditReport: url });
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
     res.json({ message: 'File uploaded', url });
   } catch (err) {
     console.error(err);
