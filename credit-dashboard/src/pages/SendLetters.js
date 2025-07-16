@@ -15,17 +15,16 @@ const columns = [
     flex: 1,
     renderCell: (params) => (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {params.value.map((l, i) => (
-          <Button
-            key={i}
-            href={l.url}
-            target="_blank"
-            variant="outlined"
-            size="small"
-          >
-            {l.name || `Letter ${i + 1}`}
-          </Button>
-        ))}
+        {params.value.map((l, i) => {
+          const fullUrl = l.url.startsWith('http')
+            ? l.url
+            : `${BACKEND_URL}${l.url.startsWith('/') ? '' : '/'}${l.url}`;
+          return (
+            <Button key={i} href={fullUrl} target="_blank" variant="outlined" size="small">
+              {l.name || `Letter ${i + 1}`}
+            </Button>
+          );
+        })}
       </div>
     ),
   },
