@@ -239,9 +239,9 @@ export default function Customers() {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 260,
+      width: 320,
       renderCell: (params) => (
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <Button
             variant="outlined"
             size="small"
