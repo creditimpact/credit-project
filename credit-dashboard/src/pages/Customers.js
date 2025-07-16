@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import AddCustomerDialog from '../components/AddCustomerDialog';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { AppModeContext } from '../ModeContext';
+import { AuthContext } from '../AuthContext';
 
 const formColumns = [
   { field: 'customerName', headerName: 'Customer Name', width: 150, editable: true },
@@ -54,12 +55,14 @@ export default function Customers() {
   const fileInputRef = React.useRef();
 
   const { mode } = React.useContext(AppModeContext);
+  const { token } = React.useContext(AuthContext);
 
   const BACKEND_URL = "http://localhost:5000";
   const API_URL = `${BACKEND_URL}/api/customers`;
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
   React.useEffect(() => {
-    fetch(API_URL)
+    fetch(API_URL, { headers: authHeaders })
       .then(res => res.json())
       .then(data => {
         const mapped = data.map((c) => ({
@@ -85,7 +88,7 @@ export default function Customers() {
     if (payload.startDate) payload.startDate = new Date(payload.startDate);
     fetch(`${API_URL}/${newRow.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders },
       body: JSON.stringify(payload),
     })
       .then(res => res.json())
@@ -101,7 +104,7 @@ export default function Customers() {
     if (payload.startDate) payload.startDate = new Date(payload.startDate);
     fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders },
       body: JSON.stringify(payload),
     })
       .then(res => res.json())
@@ -129,6 +132,7 @@ export default function Customers() {
     formData.append('file', file);
     fetch(`${BACKEND_URL}/api/upload/${uploadId}`, {
       method: 'POST',
+      headers: authHeaders,
       body: formData,
     })
       .then((res) => res.json())
@@ -153,7 +157,7 @@ export default function Customers() {
 
   const confirmDeleteCustomer = () => {
     if (!deleteId) return;
-    fetch(`${API_URL}/${deleteId}`, { method: "DELETE" })
+    fetch(`${API_URL}/${deleteId}`, { method: "DELETE", headers: authHeaders })
       .then(res => res.json())
       .then(() => {
         setRows((prev) => prev.filter((row) => row.id !== deleteId));
@@ -163,7 +167,7 @@ export default function Customers() {
   };
 
   const handleDeleteReport = (id) => {
-    fetch(`${BACKEND_URL}/api/upload/${id}`, { method: 'DELETE' })
+    fetch(`${BACKEND_URL}/api/upload/${id}`, { method: 'DELETE', headers: authHeaders })
       .then((res) => res.json())
       .then(() => {
         setRows((prev) =>
@@ -182,6 +186,7 @@ export default function Customers() {
       headers: {
         'Content-Type': 'application/json',
         'X-App-Mode': mode === 'real' ? 'Real' : 'Testing',
+        ...authHeaders,
       },
       body: JSON.stringify({ status: 'In Progress', mode }),
     })

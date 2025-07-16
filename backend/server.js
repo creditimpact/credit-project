@@ -5,6 +5,8 @@ const dotenv = require('dotenv');
 const cron = require('node-cron');
 const axios = require('axios');
 const Customer = require('./models/Customer');
+const authRoutes = require('./routes/auth');
+const authMiddleware = require('./middleware/auth');
 
 dotenv.config();
 
@@ -45,9 +47,10 @@ const customersRoutes = require('./routes/customers');
 const uploadRoutes = require('./routes/upload');
 const botRoutes = require('./routes/bot');
 
-app.use('/api/customers', customersRoutes);
-app.use('/api/clients', customersRoutes); // alias for convenience
-app.use('/api/upload', uploadRoutes);
+app.use('/api', authRoutes);
+app.use('/api/customers', authMiddleware, customersRoutes);
+app.use('/api/clients', authMiddleware, customersRoutes); // alias for convenience
+app.use('/api/upload', authMiddleware, uploadRoutes);
 app.use('/api/bot', botRoutes);
 
 // simple health endpoint

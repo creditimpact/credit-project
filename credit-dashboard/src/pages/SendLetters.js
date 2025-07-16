@@ -4,6 +4,7 @@ import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import { AuthContext } from '../AuthContext';
 
 const BACKEND_URL = 'http://localhost:5000';
 const API_URL = `${BACKEND_URL}/api/customers/letters-ready`;
@@ -71,11 +72,13 @@ const columns = [
 
 export default function SendLetters() {
   const [rows, setRows] = React.useState([]);
+  const { token } = React.useContext(AuthContext);
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
   const markCompleted = (id) => {
     fetch(`${BACKEND_URL}/api/customers/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ status: 'Completed' }),
     })
       .then((res) => res.json())
@@ -86,7 +89,7 @@ export default function SendLetters() {
   };
 
   React.useEffect(() => {
-    fetch(API_URL)
+    fetch(API_URL, { headers: authHeaders })
       .then((res) => res.json())
       .then((data) => {
         const mapped = data.map((c) => ({

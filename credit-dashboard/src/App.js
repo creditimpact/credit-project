@@ -6,20 +6,41 @@ import Dashboard from './pages/Dashboard';
 import CustomerDetails from './pages/CustomerDetails';
 import Settings from './pages/Settings';
 import Layout from './Layout';
+import Login from './pages/Login';
+import AuthProvider from './AuthContext';
+import RequireAuth from './RequireAuth';
+
+function PrivateRoutes() {
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/customers" element={<Customers />} />
+        <Route path="/customers/:id" element={<CustomerDetails />} />
+        <Route path="/work-today" element={<WorkToday />} />
+        <Route path="/send-letters" element={<SendLetters />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
+    </Layout>
+  );
+}
 
 function App() {
   return (
     <Router>
-      <Layout>
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/customers/:id" element={<CustomerDetails />} />
-          <Route path="/work-today" element={<WorkToday />} />
-          <Route path="/send-letters" element={<SendLetters />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/*"
+            element={
+              <RequireAuth>
+                <PrivateRoutes />
+              </RequireAuth>
+            }
+          />
         </Routes>
-      </Layout>
+      </AuthProvider>
     </Router>
   );
 }
