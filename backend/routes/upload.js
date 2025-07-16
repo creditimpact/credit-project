@@ -2,13 +2,16 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
 const AWS = require('aws-sdk');
 const Customer = require('../models/Customer');
 
 // הגדרה של אחסון מקומי
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads');
+    const dir = path.join('uploads', 'reports', req.params.id);
+    fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
   },
   filename: function (req, file, cb) {
     const unique = Date.now() + '-' + file.originalname;
@@ -24,7 +27,7 @@ router.post('/:id', upload.single('file'), async (req, res) => {
     const file = req.file;
     if (!file) return res.status(400).json({ error: 'No file uploaded' });
 
-    let url = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+    let url = `${req.protocol}://${req.get('host')}/uploads/reports/${customerId}/${file.filename}`;
 
     if (process.env.AWS_S3_BUCKET) {
       const s3 = new AWS.S3({
@@ -32,7 +35,7 @@ router.post('/:id', upload.single('file'), async (req, res) => {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       });
-      const key = `clients/${customerId}/${file.filename}`;
+      const key = `reports/${customerId}/${file.filename}`;
       await s3
         .upload({ Bucket: process.env.AWS_S3_BUCKET, Key: key, Body: fs.createReadStream(file.path), ContentType: file.mimetype })
         .promise();
@@ -69,9 +72,9 @@ router.delete('/:id', async (req, res) => {
       const key = new URL(url).pathname.slice(1);
       await s3.deleteObject({ Bucket: process.env.AWS_S3_BUCKET, Key: key }).promise();
     } else {
-      const filename = url.split('/').pop();
-      const path = `./uploads/${filename}`;
-      if (fs.existsSync(path)) fs.unlinkSync(path);
+      const relative = url.replace(/^.*\/uploads\//, '');
+      const localPath = path.join('uploads', relative);
+      if (fs.existsSync(localPath)) fs.unlinkSync(localPath);
     }
 
     // Clear the creditReport field after deleting the file
