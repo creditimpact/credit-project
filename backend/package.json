@@ -19,6 +19,7 @@
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.2",
     "multer": "^2.0.1",
-    "node-cron": "^3.0.3"
+    "node-cron": "^3.0.3",
+    "jsonwebtoken": "^9.0.2"
   }
 }

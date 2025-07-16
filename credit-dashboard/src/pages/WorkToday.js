@@ -3,6 +3,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
+import { AuthContext } from '../AuthContext';
 
 
 
@@ -50,10 +51,12 @@ const columns = [
 export default function WorkToday() {
   const [rows, setRows] = React.useState([]);
   const API_URL = 'http://localhost:5000/api/customers/today';
+  const { token } = React.useContext(AuthContext);
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
   React.useEffect(() => {
     const fetchData = () => {
-      fetch(API_URL)
+      fetch(API_URL, { headers: authHeaders })
         .then(res => res.json())
         .then(data => {
           const mapped = data.map((c) => ({
