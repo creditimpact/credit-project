@@ -237,7 +237,8 @@ export default function Customers() {
     {
       field: 'status',
       headerName: 'Status',
-      width: 250,
+      flex: 1,
+      minWidth: 250,
       renderCell: (params) => {
         const color =
           params.row.status === 'Completed'
@@ -263,7 +264,8 @@ export default function Customers() {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 320,
+      flex: 1,
+      minWidth: 320,
       renderCell: (params) => (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <Button
@@ -318,6 +320,7 @@ export default function Customers() {
             onProcessRowUpdateError={(err) => setSnackbar(err.message)}
             experimentalFeatures={{ newEditingApi: true }}
             slots={{ toolbar: GridToolbar }}
+            sx={{ '& .MuiDataGrid-cell': { whiteSpace: 'normal', lineHeight: 1.4 } }}
           />
         </div>
       </Paper>

@@ -14,8 +14,11 @@ const columns = [
     field: 'letters',
     headerName: 'Letters',
     flex: 1,
+    minWidth: 300,
     renderCell: (params) => (
-      <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 8, overflowX: 'auto' }}>
+      <div
+        style={{ display: 'flex', flexWrap: 'wrap', gap: 8, overflowX: 'visible' }}
+      >
         {params.value.map((l, i) => {
           const fullUrl = l.url.startsWith('http')
             ? l.url
@@ -32,7 +35,8 @@ const columns = [
   {
     field: 'status',
     headerName: 'Status',
-    width: 220,
+    flex: 1,
+    minWidth: 220,
     renderCell: (params) => {
       const color =
         params.row.status === 'Completed'
@@ -51,7 +55,8 @@ const columns = [
   {
     field: 'actions',
     headerName: 'Actions',
-    width: 150,
+    flex: 1,
+    minWidth: 150,
     renderCell: (params) => (
       <Button
         variant="outlined"
@@ -97,9 +102,15 @@ export default function SendLetters() {
   return (
     <Container sx={{ mt: 4 }}>
       <Paper sx={{ p: 2 }}>
-        <div style={{ height: 600, width: '100%' }}>
-          <DataGrid rows={rows} columns={columns} pageSize={5} rowsPerPageOptions={[5]} />
-        </div>
+          <div style={{ height: 600, width: '100%' }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              pageSize={5}
+              rowsPerPageOptions={[5]}
+              sx={{ '& .MuiDataGrid-cell': { whiteSpace: 'normal', lineHeight: 1.4 } }}
+            />
+          </div>
         {rows.length === 0 && <p>No letters ready to send.</p>}
       </Paper>
     </Container>
