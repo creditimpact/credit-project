@@ -43,8 +43,16 @@ router.post('/:id', upload.single('file'), async (req, res) => {
       fs.unlinkSync(file.path);
     }
 
-    const customer = await Customer.findByIdAndUpdate(customerId, { creditReport: url });
+    const customer = await Customer.findById(customerId);
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
+
+    customer.creditReport = url;
+
+    if (customer.status === 'Needs Updated Report') {
+      customer.status = 'Ready';
+    }
+
+    await customer.save();
 
     res.json({ message: 'File uploaded', url });
   } catch (err) {
