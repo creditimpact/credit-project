@@ -8,6 +8,7 @@ import Snackbar from '@mui/material/Snackbar';
 import { Link } from 'react-router-dom';
 import AddCustomerDialog from '../components/AddCustomerDialog';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { AppModeContext } from '../ModeContext';
 
 const formColumns = [
   { field: 'customerName', headerName: 'Customer Name', width: 150, editable: true },
@@ -52,6 +53,8 @@ export default function Customers() {
   const [uploadId, setUploadId] = React.useState(null);
   const [deleteId, setDeleteId] = React.useState(null);
   const fileInputRef = React.useRef();
+
+  const { mode } = React.useContext(AppModeContext);
 
   const BACKEND_URL = "http://localhost:5000";
   const API_URL = `${BACKEND_URL}/api/customers`;
@@ -177,8 +180,11 @@ export default function Customers() {
   const handleRunBot = (id) => {
     fetch(`${BACKEND_URL}/api/bot/${id}/status`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'In Progress' }),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-App-Mode': mode === 'real' ? 'Real' : 'Testing',
+      },
+      body: JSON.stringify({ status: 'In Progress', mode }),
     })
       .then((res) => res.json())
       .then((data) => {
