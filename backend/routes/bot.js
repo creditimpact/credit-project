@@ -3,12 +3,19 @@ const router = express.Router();
 const axios = require('axios');
 const Customer = require('../models/Customer');
 
+function getMode(req) {
+  const value = req.headers['x-app-mode'] || req.body.mode || 'real';
+  return String(value).toLowerCase().startsWith('test') ? 'testing' : 'real';
+}
+
 const BOT_PROCESS_URL = process.env.BOT_PROCESS_URL || 'http://localhost:6000/api/bot/process';
 
 // Update status and optionally trigger bot
 const updateStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
+  const mode = getMode(req);
+  console.log(`Mode for bot request: ${mode}`);
 
   try {
     const customer = await Customer.findById(id);
@@ -23,7 +30,6 @@ const updateStatus = async (req, res) => {
     await customer.save();
 
     if (status === 'In Progress') {
-
       const payload = {
         clientId: customer._id,
         creditReportUrl: customer.creditReport,
@@ -33,20 +39,41 @@ const updateStatus = async (req, res) => {
         address: customer.address,
         instructions: { strategy: 'aggressive' },
       };
-      try {
-        customer.botStatus = 'processing';
-        customer.botError = undefined;
-        await customer.save();
-        console.log(`Set customer ${customer._id} botStatus to processing`);
 
-        await axios.post(BOT_PROCESS_URL, payload);
-        console.log(`Sent to bot for customer ${customer.customerName}`);
-      } catch (err) {
-        console.error('Bot request failed:', err.message);
-        customer.botStatus = 'failed';
-        customer.botError = err.message;
-        await customer.save();
-        console.log(`Set customer ${customer._id} botStatus to failed`);
+      customer.botStatus = 'processing';
+      customer.botError = undefined;
+      await customer.save();
+      console.log(`Set customer ${customer._id} botStatus to processing`);
+
+      if (mode === 'testing') {
+        setTimeout(async () => {
+          try {
+            const letters = [
+              {
+                name: 'mock_letter.pdf',
+                url: `https://example.com/${customer._id}/mock_letter.pdf`,
+              },
+            ];
+            customer.status = 'Letters Created';
+            customer.botStatus = 'done';
+            customer.letters = letters;
+            await customer.save();
+            console.log(`Simulated bot result for ${customer._id}`);
+          } catch (err) {
+            console.error('Failed to save simulated result:', err);
+          }
+        }, 1000);
+      } else {
+        try {
+          await axios.post(BOT_PROCESS_URL, payload);
+          console.log(`Sent to bot for customer ${customer.customerName}`);
+        } catch (err) {
+          console.error('Bot request failed:', err.message);
+          customer.botStatus = 'failed';
+          customer.botError = err.message;
+          await customer.save();
+          console.log(`Set customer ${customer._id} botStatus to failed`);
+        }
       }
     }
 
