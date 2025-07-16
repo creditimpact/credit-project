@@ -16,7 +16,6 @@ const formColumns = [
   { field: 'email', headerName: 'Email', width: 180, editable: true },
   { field: 'address', headerName: 'Address', width: 180, editable: true },
   { field: 'startDate', headerName: 'Start Date', width: 130, editable: true },
-  { field: 'roundNumber', headerName: 'Round Number', width: 130, editable: true },
   { field: 'notes', headerName: 'Notes', width: 200, editable: true },
   {
     field: 'issueDetails',
@@ -238,8 +237,27 @@ export default function Customers() {
     {
       field: 'status',
       headerName: 'Status',
-      width: 120,
-      renderCell: (params) => <Chip label={params.value} color={params.value === 'Completed' ? 'success' : 'info'} />,
+      width: 250,
+      renderCell: (params) => {
+        const color =
+          params.row.status === 'Completed'
+            ? 'success'
+            : params.row.status === 'Needs Updated Report'
+            ? 'warning'
+            : 'info';
+        return (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Chip label={`Round ${params.row.roundNumber || 1}`} size="small" />
+            <Chip label={params.row.status} color={color} size="small" />
+            {params.row.status === 'Needs Updated Report' && (
+              <Chip label="Upload new report" color="warning" size="small" />
+            )}
+            {params.row.creditReport && (
+              <Chip label="Report uploaded" color="success" size="small" />
+            )}
+          </div>
+        );
+      },
       editable: true,
     },
     {
@@ -247,7 +265,7 @@ export default function Customers() {
       headerName: 'Actions',
       width: 320,
       renderCell: (params) => (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <Button
             variant="outlined"
             size="small"
@@ -263,9 +281,6 @@ export default function Customers() {
           >
             Upload Report
           </Button>
-          {params.row.status === 'Needs Updated Report' && (
-            <Chip label="Upload new report" color="warning" size="small" />
-          )}
           <Button
             variant="outlined"
             size="small"
@@ -282,10 +297,6 @@ export default function Customers() {
           >
             Delete
           </Button>
-          {params.row.creditReport && (
-            <Chip label="Report uploaded" color="success" size="small" />
-          )}
-          <Chip label={`Round: ${params.row.roundNumber || 1}`} size="small" />
         </div>
       ),
     },

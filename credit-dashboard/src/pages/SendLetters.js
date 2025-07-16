@@ -3,19 +3,19 @@ import { DataGrid } from '@mui/x-data-grid';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 
 const BACKEND_URL = 'http://localhost:5000';
 const API_URL = `${BACKEND_URL}/api/customers/letters-ready`;
 
 const columns = [
   { field: 'customerName', headerName: 'Customer Name', width: 180 },
-  { field: 'roundNumber', headerName: 'Round', width: 100 },
   {
     field: 'letters',
     headerName: 'Letters',
     flex: 1,
     renderCell: (params) => (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 8, overflowX: 'auto' }}>
         {params.value.map((l, i) => {
           const fullUrl = l.url.startsWith('http')
             ? l.url
@@ -29,7 +29,25 @@ const columns = [
       </div>
     ),
   },
-  { field: 'status', headerName: 'Status', width: 150 },
+  {
+    field: 'status',
+    headerName: 'Status',
+    width: 220,
+    renderCell: (params) => {
+      const color =
+        params.row.status === 'Completed'
+          ? 'success'
+          : params.row.status === 'Needs Updated Report'
+          ? 'warning'
+          : 'info';
+      return (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Chip label={`Round ${params.row.roundNumber || 1}`} size="small" />
+          <Chip label={params.row.status} color={color} size="small" />
+        </div>
+      );
+    },
+  },
   {
     field: 'actions',
     headerName: 'Actions',
