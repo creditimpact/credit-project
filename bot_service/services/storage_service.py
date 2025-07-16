@@ -2,6 +2,7 @@ import os
 import shutil
 import logging
 from pathlib import Path
+from config.settings import BACKEND_URL
 
 try:
     import boto3
@@ -47,4 +48,4 @@ def upload_file(local_path: str, key: str) -> str:
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(local_path, dest_path)
     logger.info("Saved %s locally at %s", key, dest_path)
-    return str(dest_path)
+    return f"{BACKEND_URL}/uploads/{key}"
