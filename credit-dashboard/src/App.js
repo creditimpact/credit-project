@@ -4,6 +4,7 @@ import WorkToday from './pages/WorkToday';
 import SendLetters from './pages/SendLetters';
 import Dashboard from './pages/Dashboard';
 import CustomerDetails from './pages/CustomerDetails';
+import Settings from './pages/Settings';
 import Layout from './Layout';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <Route path="/customers/:id" element={<CustomerDetails />} />
           <Route path="/work-today" element={<WorkToday />} />
           <Route path="/send-letters" element={<SendLetters />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>
     </Router>
