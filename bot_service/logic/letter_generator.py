@@ -42,7 +42,14 @@ def dedupe_disputes(disputes: list[dict], bureau_name: str, log: list[str]) -> l
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", "wkhtmltopdf")
+# Point to the wkhtmltopdf executable explicitly on Windows installs so
+# PDF generation functions without additional setup.
+DEFAULT_WKHTMLTOPDF = (
+    r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"
+    if os.name == "nt"
+    else "wkhtmltopdf"
+)
+WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", DEFAULT_WKHTMLTOPDF)
 
 CREDIT_BUREAU_ADDRESSES = {
     "Experian": "P.O. Box 4500, Allen, TX 75013",
