@@ -35,10 +35,10 @@
 <body>
 
     <div class="section">
+        <p><strong>{{ client_name }}</strong>{% for line in client_address_lines %}<br>{{ line }}{% endfor %}{% if not client_address_lines %}<br>____________________{% endif %}</p>
+        <p>{{ date }}</p>
         <p><strong>To:</strong> {{ creditor }}<br>
         {{ creditor_address }}</p>
-        <p>{{ date }}</p>
-        <p><strong>{{ client_name }}</strong>{% for line in client_address_lines %}<br>{{ line }}{% endfor %}{% if not client_address_lines %}<br>__________________________{% endif %}</p>
         <p>Dear {{ creditor or 'To whom it may concern' }},</p>
     </div>
 
