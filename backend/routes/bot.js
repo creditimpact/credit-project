@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 const Customer = require('../models/Customer');
 
 function getMode(req) {
@@ -9,6 +11,16 @@ function getMode(req) {
 }
 
 const BOT_PROCESS_URL = process.env.BOT_PROCESS_URL || 'http://localhost:6000/api/bot/process';
+
+function createMockLetter(customerId) {
+  const dir = path.join('uploads', 'letters', String(customerId));
+  fs.mkdirSync(dir, { recursive: true });
+  const fileName = 'placeholder_letter.pdf';
+  const filePath = path.join(dir, fileName);
+  const content = `Mock Dispute Letter\n\n[Your Name]\n[Your Address]\n[Date]\n\nThis is a placeholder letter generated in testing mode.`;
+  fs.writeFileSync(filePath, content);
+  return { name: fileName, url: `/uploads/letters/${customerId}/${fileName}` };
+}
 
 // Update status and optionally trigger bot
 const updateStatus = async (req, res) => {
@@ -46,27 +58,23 @@ const updateStatus = async (req, res) => {
       console.log(`Set customer ${customer._id} botStatus to processing`);
 
       if (mode === 'testing') {
-        setTimeout(async () => {
-          try {
-            const letters = [
-              {
-                name: 'mock_letter.pdf',
-                url: `https://example.com/${customer._id}/mock_letter.pdf`,
-              },
-            ];
-            customer.status = 'Letters Created';
-            customer.botStatus = 'done';
-            customer.letters = letters;
-            await customer.save();
-            console.log(`Simulated bot result for ${customer._id}`);
-          } catch (err) {
-            console.error('Failed to save simulated result:', err);
-          }
-        }, 1000);
+        try {
+          const letter = createMockLetter(customer._id);
+          customer.status = 'Letters Created';
+          customer.botStatus = 'done';
+          customer.letters = [letter];
+          await customer.save();
+          console.log(`(TESTING) Generated placeholder letter for ${customer._id}`);
+        } catch (err) {
+          console.error('Failed to create placeholder letter:', err);
+          customer.botStatus = 'failed';
+          customer.botError = err.message;
+          await customer.save();
+        }
       } else {
         try {
           await axios.post(BOT_PROCESS_URL, payload);
-          console.log(`Sent to bot for customer ${customer.customerName}`);
+          console.log(`(REAL) Sent to bot for customer ${customer.customerName}`);
         } catch (err) {
           console.error('Bot request failed:', err.message);
           customer.botStatus = 'failed';
