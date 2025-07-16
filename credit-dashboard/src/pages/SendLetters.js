@@ -4,81 +4,46 @@ import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 
+const BACKEND_URL = 'http://localhost:5000';
+const API_URL = `${BACKEND_URL}/api/customers/letters-ready`;
+
 const columns = [
   { field: 'customerName', headerName: 'Customer Name', width: 180 },
   {
-    field: 'inquiryLetter',
-    headerName: 'Inquiry Removal Letter',
-    width: 200,
+    field: 'letters',
+    headerName: 'Letters',
+    flex: 1,
     renderCell: (params) => (
-      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {params.value.map((l, i) => (
+          <Button
+            key={i}
+            href={l.url}
+            target="_blank"
+            variant="outlined"
+            size="small"
+          >
+            {l.name || `Letter ${i + 1}`}
+          </Button>
+        ))}
+      </div>
     ),
   },
-  {
-    field: 'chargeoffLetter',
-    headerName: 'Charge-off Letter',
-    width: 180,
-    renderCell: (params) => (
-      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
-    ),
-  },
-  {
-    field: 'collectionLetter',
-    headerName: 'Collection Letter',
-    width: 180,
-    renderCell: (params) => (
-      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
-    ),
-  },
-  {
-    field: 'goodwillLetter',
-    headerName: 'Goodwill Letter',
-    width: 180,
-    renderCell: (params) => (
-      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
-    ),
-  },
-  {
-    field: 'customLetter',
-    headerName: 'Custom Letter',
-    width: 160,
-    renderCell: (params) => (
-      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
-    ),
-  },
-  {
-    field: 'methodVerificationLetter',
-    headerName: 'Method of Verification',
-    width: 200,
-    renderCell: (params) => (
-      <Button href={params.value} target="_blank" variant="outlined" size="small">Download</Button>
-    ),
-  },
+  { field: 'status', headerName: 'Status', width: 150 },
 ];
 
 export default function SendLetters() {
-  const rows = [
-    {
-      id: 1,
-      customerName: 'John Doe',
-      inquiryLetter: 'https://example.com/inquiry_john.pdf',
-      chargeoffLetter: 'https://example.com/chargeoff_john.pdf',
-      collectionLetter: 'https://example.com/collection_john.pdf',
-      goodwillLetter: 'https://example.com/goodwill_john.pdf',
-      customLetter: 'https://example.com/custom_john.pdf',
-      methodVerificationLetter: 'https://example.com/method_john.pdf',
-    },
-    {
-      id: 2,
-      customerName: 'Jane Smith',
-      inquiryLetter: 'https://example.com/inquiry_jane.pdf',
-      chargeoffLetter: 'https://example.com/chargeoff_jane.pdf',
-      collectionLetter: 'https://example.com/collection_jane.pdf',
-      goodwillLetter: 'https://example.com/goodwill_jane.pdf',
-      customLetter: 'https://example.com/custom_jane.pdf',
-      methodVerificationLetter: 'https://example.com/method_jane.pdf',
-    },
-  ];
+  const [rows, setRows] = React.useState([]);
+
+  React.useEffect(() => {
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((data) => {
+        const mapped = data.map((c) => ({ ...c, id: c.id || c._id }));
+        setRows(mapped);
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -86,6 +51,7 @@ export default function SendLetters() {
         <div style={{ height: 600, width: '100%' }}>
           <DataGrid rows={rows} columns={columns} pageSize={5} rowsPerPageOptions={[5]} />
         </div>
+        {rows.length === 0 && <p>No letters ready to send.</p>}
       </Paper>
     </Container>
   );
