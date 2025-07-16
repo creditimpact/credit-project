@@ -116,6 +116,12 @@ cron.schedule('*/5 * * * *', async () => {
       address: customer.address,
       instructions: { strategy: 'aggressive' },
       mode: DEFAULT_MODE,
+      clientInfo: {
+        name: customer.customerName,
+        address: customer.address,
+        phone: customer.phone,
+        email: customer.email,
+      },
     };
 
     try {

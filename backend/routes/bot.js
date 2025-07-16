@@ -42,6 +42,12 @@ const updateStatus = async (req, res) => {
         email: customer.email,
         address: customer.address,
         instructions: { strategy: 'aggressive' },
+        clientInfo: {
+          name: customer.customerName,
+          address: customer.address,
+          phone: customer.phone,
+          email: customer.email,
+        },
       };
 
       customer.botStatus = 'processing';
