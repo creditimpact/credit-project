@@ -14,7 +14,9 @@ except ImportError:  # Allow running without boto3 when not using S3
 BUCKET = os.getenv("AWS_S3_BUCKET")
 REGION = os.getenv("AWS_REGION", "us-east-1")
 
-LOCAL_UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads"
+# Store files under the backend uploads directory so the Node backend can
+# serve them from the same location as credit reports.
+LOCAL_UPLOAD_DIR = Path(__file__).resolve().parents[2] / "backend" / "uploads"
 
 _s3_client = None
 if BUCKET and boto3:
