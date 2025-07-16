@@ -19,4 +19,5 @@ Environment variables are read from a `.env` file or the environment:
 - `AWS_REGION`
 - `BACKEND_URL` (e.g. `http://localhost:5000`)
 - `PORT` (default 6000)
+- `APP_MODE` (optional) — default mode when no header/body value is provided
 

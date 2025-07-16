@@ -37,7 +37,10 @@ def process():
     if not client_id or not report_url:
         return jsonify({'error': 'Invalid payload'}), 400
 
-    logger.info("Processing report for client %s", client_id)
+    mode_raw = request.headers.get('X-App-Mode') or data.get('mode') or os.getenv('APP_MODE', 'real')
+    mode = 'testing' if str(mode_raw).lower().startswith('test') else 'real'
+
+    logger.info("Processing report for client %s in %s mode", client_id, mode)
 
     try:
         # Download credit report
@@ -49,47 +52,49 @@ def process():
             report_path = f.name
         logger.info("Saved report to %s (%d bytes)", report_path, len(resp.content))
 
-        # Parse a snippet of the report text so we can feed it to GPT if needed
-        report_text = ""
-        try:
-            logger.info("Parsing PDF with pdfplumber")
-            with pdfplumber.open(report_path) as pdf:
-                logger.info("PDF opened, %d pages", len(pdf.pages))
-                for page in pdf.pages:
-                    page_text = page.extract_text() or ""
-                    report_text += page_text
-                    if len(report_text) >= 1000:
-                        break
-        except Exception as e:
-            logger.warning("pdfplumber failed: %s", e)
-            report_text = extract_pdf_text_safe(Path(report_path), max_chars=1000)
-            logger.info("Fallback extracted %d characters", len(report_text))
-
-        # Create dispute letter text
         text = None
-        if client:
+        if mode == 'real':
+            # Parse a snippet of the report text so we can feed it to GPT
+            report_text = ""
             try:
-                logger.info("Calling OpenAI with %d character prompt", len(report_text))
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "Write a credit dispute letter"},
-                        {
-                            "role": "user",
-                            "content": f"For client {client_id}. Here is the credit report snippet:\n{report_text[:1000]}",
-                        },
-                    ],
-                    max_tokens=200,
-                )
-                if (
-                    response.choices
-                    and response.choices[0].message
-                    and response.choices[0].message.content
-                ):
-                    text = response.choices[0].message.content.strip()
-                    logger.info("Received OpenAI response (%d chars)", len(text))
+                logger.info("Parsing PDF with pdfplumber")
+                with pdfplumber.open(report_path) as pdf:
+                    logger.info("PDF opened, %d pages", len(pdf.pages))
+                    for page in pdf.pages:
+                        page_text = page.extract_text() or ""
+                        report_text += page_text
+                        if len(report_text) >= 1000:
+                            break
             except Exception as e:
-                logger.error("OpenAI request failed: %s", e)
+                logger.warning("pdfplumber failed: %s", e)
+                report_text = extract_pdf_text_safe(Path(report_path), max_chars=1000)
+                logger.info("Fallback extracted %d characters", len(report_text))
+
+            if client:
+                try:
+                    logger.info("Calling OpenAI with %d character prompt", len(report_text))
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {"role": "system", "content": "Write a credit dispute letter"},
+                            {
+                                "role": "user",
+                                "content": f"For client {client_id}. Here is the credit report snippet:\n{report_text[:1000]}",
+                            },
+                        ],
+                        max_tokens=200,
+                    )
+                    if (
+                        response.choices
+                        and response.choices[0].message
+                        and response.choices[0].message.content
+                    ):
+                        text = response.choices[0].message.content.strip()
+                        logger.info("Received OpenAI response (%d chars)", len(text))
+                except Exception as e:
+                    logger.error("OpenAI request failed: %s", e)
+        else:
+            text = f"Placeholder letter for {client_id}"
 
         # Fallback text if no valid response
         if not text or not isinstance(text, str):
