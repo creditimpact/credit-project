@@ -64,6 +64,24 @@ router.get('/today', async (req, res) => {
   }
 });
 
+// Get customers with ready letters
+router.get('/letters-ready', async (req, res) => {
+  try {
+    const customers = await Customer.find({
+      letters: { $exists: true, $not: { $size: 0 } },
+      $or: [{ status: 'Letters Created' }, { botStatus: 'done' }],
+    });
+    const mapped = customers.map((c) => {
+      const obj = c.toObject();
+      obj.id = c._id;
+      return obj;
+    });
+    res.json(mapped);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get single customer by ID
 router.get('/:id', async (req, res) => {
   try {
