@@ -166,6 +166,21 @@ export default function Customers() {
       .catch(() => setSnackbar('Delete failed'));
   };
 
+  const handleRunBot = (id) => {
+    fetch(`${BACKEND_URL}/api/bot/${id}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'In Progress' }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const updated = { ...data.customer, id: data.customer._id };
+        setRows((prev) => prev.map((row) => (row.id === id ? updated : row)));
+        setSnackbar('Bot started');
+      })
+      .catch(() => setSnackbar('Failed to start bot'));
+  };
+
   const creditReportColumn = {
     field: 'creditReport',
     headerName: 'Credit Report Link',
@@ -214,7 +229,7 @@ export default function Customers() {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 200,
+      width: 260,
       renderCell: (params) => (
         <div style={{ display: 'flex', gap: 8 }}>
           <Button
@@ -231,6 +246,14 @@ export default function Customers() {
             onClick={() => handleUploadClick(params.row.id)}
           >
             Upload Report
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => handleRunBot(params.row.id)}
+            disabled={!params.row.creditReport}
+          >
+            Run Bot
           </Button>
           <Button
             variant="outlined"
