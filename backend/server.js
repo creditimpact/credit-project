@@ -8,6 +8,12 @@ const Customer = require('./models/Customer');
 
 dotenv.config();
 
+function resolveMode(value) {
+  return String(value || '').toLowerCase().startsWith('test') ? 'testing' : 'real';
+}
+
+const DEFAULT_MODE = resolveMode(process.env.APP_MODE || 'real');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -109,11 +115,14 @@ cron.schedule('*/5 * * * *', async () => {
       email: customer.email,
       address: customer.address,
       instructions: { strategy: 'aggressive' },
+      mode: DEFAULT_MODE,
     };
 
     try {
-      await axios.post(process.env.BOT_PROCESS_URL, payload);
-      console.log(`Sent to bot via cron for ${customer.customerName}`);
+      await axios.post(process.env.BOT_PROCESS_URL, payload, {
+        headers: { 'X-App-Mode': DEFAULT_MODE },
+      });
+      console.log(`Sent to bot via cron (${DEFAULT_MODE}) for ${customer.customerName}`);
     } catch (err) {
       console.error('Cron bot request failed:', err.message);
       customer.botStatus = 'failed';
