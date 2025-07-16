@@ -19,7 +19,14 @@ from logic.utils import (
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", "wkhtmltopdf")
+# Default wkhtmltopdf path works cross-platform. Windows installs typically
+# reside under "Program Files" so we explicitly reference that location.
+DEFAULT_WKHTMLTOPDF = (
+    r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"
+    if os.name == "nt"
+    else "wkhtmltopdf"
+)
+WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", DEFAULT_WKHTMLTOPDF)
 pdf_config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
 
 template_env = Environment(loader=FileSystemLoader("templates"))

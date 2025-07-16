@@ -18,6 +18,14 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 env = Environment(loader=FileSystemLoader("templates"))
 
+# Explicit wkhtmltopdf path for Windows installations.
+DEFAULT_WKHTMLTOPDF = (
+    r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"
+    if os.name == "nt"
+    else "wkhtmltopdf"
+)
+WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", DEFAULT_WKHTMLTOPDF)
+
 
 def get_logo_base64() -> str:
     """Return the Credit Impact logo encoded as a base64 data URI."""
@@ -39,7 +47,7 @@ def extract_clean_name(full_name: str) -> str:
     return " ".join(unique_parts)
 
 def render_html_to_pdf(html_string: str, output_path: Path):
-    config = pdfkit.configuration(wkhtmltopdf=os.getenv("WKHTMLTOPDF_PATH", "wkhtmltopdf"))
+    config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
     options = {"quiet": ""}
     try:
         pdfkit.from_string(html_string, str(output_path), configuration=config, options=options)

@@ -10,7 +10,14 @@ from logic.utils import gather_supporting_docs
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", "wkhtmltopdf")
+# Use an explicit wkhtmltopdf path on Windows so PDF generation works
+# without requiring additional configuration.
+DEFAULT_WKHTMLTOPDF = (
+    r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"
+    if os.name == "nt"
+    else "wkhtmltopdf"
+)
+WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", DEFAULT_WKHTMLTOPDF)
 pdf_config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
 
 env = Environment(loader=FileSystemLoader("templates"))
