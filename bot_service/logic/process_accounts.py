@@ -63,6 +63,20 @@ class Account:
         else:
             self.extra[key] = value
 
+    def copy(self) -> Dict[str, Any]:
+        """Return a dictionary copy of this account."""
+        return self.to_dict().copy()
+
+    def items(self):
+        """Return an iterator over key/value pairs like ``dict.items()``."""
+        return self.to_dict().items()
+
+    def __iter__(self):
+        return iter(self.to_dict())
+
+    def __len__(self) -> int:
+        return len(self.to_dict())
+
 # 💡 Functions to enrich goodwill accounts with hardship context
 
 def infer_hardship_reason(account: Account) -> str:
