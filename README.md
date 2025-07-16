@@ -80,10 +80,11 @@ values for your setup.
 
 ## 📂 Uploads structure
 
-Uploaded files are stored under the `uploads` folder when running locally.
+Uploaded files are stored under the `backend/uploads` folder when running
+locally so that both services reference the same directory.
 
-- Credit reports → `uploads/reports/<clientId>/`
-- Generated letters → `uploads/letters/<clientId>/`
+- Credit reports → `backend/uploads/reports/<clientId>/`
+- Generated letters → `backend/uploads/letters/<clientId>/`
 
 Folders are created automatically if they do not exist.
 
