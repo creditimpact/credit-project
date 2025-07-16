@@ -9,6 +9,7 @@ const API_URL = `${BACKEND_URL}/api/customers/letters-ready`;
 
 const columns = [
   { field: 'customerName', headerName: 'Customer Name', width: 180 },
+  { field: 'roundNumber', headerName: 'Round', width: 100 },
   {
     field: 'letters',
     headerName: 'Letters',
