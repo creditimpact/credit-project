@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
+const path = require('path');
 const AWS = require('aws-sdk');
 const Customer = require('../models/Customer');
 
@@ -129,9 +130,9 @@ router.delete('/:id', async (req, res) => {
         const key = new URL(url).pathname.slice(1);
         await s3.deleteObject({ Bucket: process.env.AWS_S3_BUCKET, Key: key }).promise();
       } else {
-        const filename = url.split('/').pop();
-        const path = `./uploads/${filename}`;
-        if (fs.existsSync(path)) fs.unlinkSync(path);
+        const relative = url.replace(/^.*\/uploads\//, '');
+        const localPath = path.join('uploads', relative);
+        if (fs.existsSync(localPath)) fs.unlinkSync(localPath);
       }
     }
 

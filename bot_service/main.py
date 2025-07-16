@@ -102,8 +102,8 @@ def process():
             letter_path = f.name
         logger.info("Generated letter PDF at %s", letter_path)
 
-        # Upload letter
-        key = f"clients/{client_id}/dispute_letter.pdf"
+        # Upload letter into client-specific letters folder
+        key = f"letters/{client_id}/dispute_letter.pdf"
         url = upload_file(letter_path, key)
         logger.info("Uploaded letter to %s", url)
         letters = [{'name': 'dispute_letter.pdf', 'url': url}]

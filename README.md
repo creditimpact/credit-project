@@ -78,6 +78,15 @@ values for your setup.
 - The same AWS variables as above if uploading to the same bucket
 - Any additional API keys (e.g., OpenAI) placed in `.env`
 
+## 📂 Uploads structure
+
+Uploaded files are stored under the `uploads` folder when running locally.
+
+- Credit reports → `uploads/reports/<clientId>/`
+- Generated letters → `uploads/letters/<clientId>/`
+
+Folders are created automatically if they do not exist.
+
 ## 📄 Recommended start order
 
 1️⃣ Start the **bot service** (Python) first — so the backend can communicate with it.  
