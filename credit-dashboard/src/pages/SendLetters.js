@@ -29,16 +29,47 @@ const columns = [
     ),
   },
   { field: 'status', headerName: 'Status', width: 150 },
+  {
+    field: 'actions',
+    headerName: 'Actions',
+    width: 150,
+    renderCell: (params) => (
+      <Button
+        variant="outlined"
+        size="small"
+        onClick={() => params.row.onMark()}
+      >
+        Mark Completed
+      </Button>
+    ),
+  },
 ];
 
 export default function SendLetters() {
   const [rows, setRows] = React.useState([]);
 
+  const markCompleted = (id) => {
+    fetch(`${BACKEND_URL}/api/customers/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'Completed' }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setRows((prev) => prev.filter((r) => r.id !== id));
+      })
+      .catch((err) => console.error(err));
+  };
+
   React.useEffect(() => {
     fetch(API_URL)
       .then((res) => res.json())
       .then((data) => {
-        const mapped = data.map((c) => ({ ...c, id: c.id || c._id }));
+        const mapped = data.map((c) => ({
+          ...c,
+          id: c.id || c._id,
+          onMark: () => markCompleted(c.id || c._id),
+        }));
         setRows(mapped);
       })
       .catch((err) => console.error(err));
