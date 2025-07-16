@@ -7,6 +7,7 @@ import Chip from '@mui/material/Chip';
 import Snackbar from '@mui/material/Snackbar';
 import { Link } from 'react-router-dom';
 import AddCustomerDialog from '../components/AddCustomerDialog';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const formColumns = [
   { field: 'customerName', headerName: 'Customer Name', width: 150, editable: true },
@@ -49,6 +50,7 @@ export default function Customers() {
   const [newCustomer, setNewCustomer] = React.useState({ status: 'New', roundNumber: 1 });
   const [snackbar, setSnackbar] = React.useState('');
   const [uploadId, setUploadId] = React.useState(null);
+  const [deleteId, setDeleteId] = React.useState(null);
   const fileInputRef = React.useRef();
 
   const BACKEND_URL = "http://localhost:5000";
@@ -144,16 +146,18 @@ export default function Customers() {
   };
 
   const handleDeleteCustomer = (id) => {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this customer? This action cannot be undone.'
-    );
-    if (!confirmed) return;
-    fetch(`${API_URL}/${id}`, { method: "DELETE" })
+    setDeleteId(id);
+  };
+
+  const confirmDeleteCustomer = () => {
+    if (!deleteId) return;
+    fetch(`${API_URL}/${deleteId}`, { method: "DELETE" })
       .then(res => res.json())
       .then(() => {
-        setRows((prev) => prev.filter((row) => row.id !== id));
+        setRows((prev) => prev.filter((row) => row.id !== deleteId));
         setSnackbar('Customer deleted');
-      });
+      })
+      .finally(() => setDeleteId(null));
   };
 
   const handleDeleteReport = (id) => {
@@ -315,6 +319,13 @@ export default function Customers() {
         ref={fileInputRef}
         style={{ display: 'none' }}
         onChange={handleFileChange}
+      />
+      <ConfirmDialog
+        open={Boolean(deleteId)}
+        onClose={() => setDeleteId(null)}
+        onConfirm={confirmDeleteCustomer}
+        title="Delete Customer"
+        message="Are you sure you want to permanently delete this customer and all their data? This action cannot be undone."
       />
     </Container>
   );

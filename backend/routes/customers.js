@@ -148,9 +148,14 @@ router.delete('/:id', async (req, res) => {
       }
     }
 
-    const lettersDir = path.join('uploads', 'letters', req.params.id);
+    const lettersDir = path.join(__dirname, '..', 'uploads', 'letters', req.params.id);
     if (fs.existsSync(lettersDir)) {
       fs.rmSync(lettersDir, { recursive: true, force: true });
+    }
+
+    const reportsDir = path.join(__dirname, '..', 'uploads', 'reports', req.params.id);
+    if (fs.existsSync(reportsDir)) {
+      fs.rmSync(reportsDir, { recursive: true, force: true });
     }
 
     await Customer.findByIdAndDelete(req.params.id);
