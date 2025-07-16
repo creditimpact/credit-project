@@ -23,12 +23,11 @@
 </head>
 <body>
     <div class="section">
+        <p><strong>{{ client_name }}</strong><br>{{ client_street }}<br>{{ client_city }}, {{ client_state }} {{ client_zip }}</p>
+        <p>{{ date }}</p>
         {% if recipient_name %}
         <p>{{ recipient_name }}</p>
         {% endif %}
-        <p>{{ date }}</p>
-        <p><strong>{{ client_name }}</strong><br>{{ client_street }}<br>{{ client_city }}, {{ client_state }} {{ client_zip }}</p>
-    </div>
 
     <div class="section">
         <p>{{ greeting_line }}</p>
