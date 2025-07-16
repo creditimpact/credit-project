@@ -108,7 +108,18 @@ export default function SendLetters() {
               columns={columns}
               pageSize={5}
               rowsPerPageOptions={[5]}
-              sx={{ '& .MuiDataGrid-cell': { whiteSpace: 'normal', lineHeight: 1.4 } }}
+              autoHeight
+              getRowHeight={() => 'auto'}
+              sx={{
+                '& .MuiDataGrid-cell': {
+                  whiteSpace: 'normal',
+                  lineHeight: 1.4,
+                },
+                '& .MuiDataGrid-row': {
+                  maxHeight: 'none !important',
+                  alignItems: 'start',
+                },
+              }}
             />
           </div>
         {rows.length === 0 && <p>No letters ready to send.</p>}

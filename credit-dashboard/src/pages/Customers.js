@@ -320,7 +320,18 @@ export default function Customers() {
             onProcessRowUpdateError={(err) => setSnackbar(err.message)}
             experimentalFeatures={{ newEditingApi: true }}
             slots={{ toolbar: GridToolbar }}
-            sx={{ '& .MuiDataGrid-cell': { whiteSpace: 'normal', lineHeight: 1.4 } }}
+            autoHeight
+            getRowHeight={() => 'auto'}
+            sx={{
+              '& .MuiDataGrid-cell': {
+                whiteSpace: 'normal',
+                lineHeight: 1.4,
+              },
+              '& .MuiDataGrid-row': {
+                maxHeight: 'none !important',
+                alignItems: 'start',
+              },
+            }}
           />
         </div>
       </Paper>
