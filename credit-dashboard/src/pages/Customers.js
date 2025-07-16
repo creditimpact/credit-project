@@ -46,7 +46,7 @@ const formColumns = [
 export default function Customers() {
   const [rows, setRows] = React.useState([]);
   const [open, setOpen] = React.useState(false);
-  const [newCustomer, setNewCustomer] = React.useState({ status: 'New' });
+  const [newCustomer, setNewCustomer] = React.useState({ status: 'New', roundNumber: 1 });
   const [snackbar, setSnackbar] = React.useState('');
   const [uploadId, setUploadId] = React.useState(null);
   const fileInputRef = React.useRef();
@@ -105,7 +105,7 @@ export default function Customers() {
         const mapped = { ...data, id: data.id || data._id };
         setRows((prev) => [...prev, mapped]);
         setOpen(false);
-        setNewCustomer({ status: 'New' });
+        setNewCustomer({ status: 'New', roundNumber: 1 });
         setSnackbar('Customer added');
       });
   };
@@ -144,6 +144,10 @@ export default function Customers() {
   };
 
   const handleDeleteCustomer = (id) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this customer? This action cannot be undone.'
+    );
+    if (!confirmed) return;
     fetch(`${API_URL}/${id}`, { method: "DELETE" })
       .then(res => res.json())
       .then(() => {
@@ -188,8 +192,10 @@ export default function Customers() {
     editable: true,
     renderCell: (params) => {
       const url = params.value;
-      if (!url) {
-        return <span style={{ color: 'red' }}>Need to upload a report</span>;
+      if (!url || params.row.status === 'Needs Updated Report') {
+        return (
+          <span style={{ color: 'red' }}>Upload a new report to start the next round</span>
+        );
       }
       const fullUrl = url.startsWith('http') ? url : `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}` + url;
       return (
@@ -247,6 +253,9 @@ export default function Customers() {
           >
             Upload Report
           </Button>
+          {params.row.status === 'Needs Updated Report' && (
+            <Chip label="Upload new report" color="warning" size="small" />
+          )}
           <Button
             variant="outlined"
             size="small"
@@ -266,6 +275,7 @@ export default function Customers() {
           {params.row.creditReport && (
             <Chip label="Report uploaded" color="success" size="small" />
           )}
+          <Chip label={`Round: ${params.row.roundNumber || 1}`} size="small" />
         </div>
       ),
     },

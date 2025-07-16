@@ -102,9 +102,20 @@ router.put('/:id', async (req, res) => {
   try {
     const payload = { ...req.body };
     if (payload.startDate) payload.startDate = new Date(payload.startDate);
-    const updated = await Customer.findByIdAndUpdate(req.params.id, payload, { new: true });
-    if (!updated) return res.status(404).json({ error: 'Customer not found' });
-    const data = updated.toObject();
+
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
+
+    Object.assign(customer, payload);
+
+    if (payload.status === 'Completed') {
+      customer.roundNumber = (customer.roundNumber || 1) + 1;
+      customer.status = 'Needs Updated Report';
+    }
+
+    await customer.save();
+
+    const data = customer.toObject();
     data.id = data._id;
     if (data.startDate) data.startDate = data.startDate.toISOString();
     res.json(data);
@@ -133,7 +144,13 @@ router.delete('/:id', async (req, res) => {
         const relative = url.replace(/^.*\/uploads\//, '');
         const localPath = path.join('uploads', relative);
         if (fs.existsSync(localPath)) fs.unlinkSync(localPath);
+
       }
+    }
+
+    const lettersDir = path.join('uploads', 'letters', req.params.id);
+    if (fs.existsSync(lettersDir)) {
+      fs.rmSync(lettersDir, { recursive: true, force: true });
     }
 
     await Customer.findByIdAndDelete(req.params.id);

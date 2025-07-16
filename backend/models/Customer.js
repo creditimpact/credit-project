@@ -6,7 +6,7 @@ const CustomerSchema = new mongoose.Schema({
   email: { type: String, required: true },
   address: { type: String, required: true },
   startDate: { type: Date, required: true },
-  roundNumber: Number,
+  roundNumber: { type: Number, default: 1 },
   notes: String,
   issueDetails: String,
   creditReport: String,
