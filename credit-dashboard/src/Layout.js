@@ -21,7 +21,10 @@ import TodayIcon from '@mui/icons-material/Today';
 import MailIcon from '@mui/icons-material/Mail';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import SettingsIcon from '@mui/icons-material/Settings';
+import Chip from '@mui/material/Chip';
 import { ColorModeContext } from './ThemeContext';
+import { AppModeContext } from './ModeContext';
 
 const drawerWidth = 240;
 
@@ -29,6 +32,7 @@ export default function Layout({ children }) {
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { toggleColorMode } = React.useContext(ColorModeContext);
+  const { mode } = React.useContext(AppModeContext);
   const theme = useTheme();
 
   const handleDrawerToggle = () => {
@@ -40,6 +44,7 @@ export default function Layout({ children }) {
     { text: 'Customers', icon: <PeopleIcon />, to: '/customers' },
     { text: 'Work Today', icon: <TodayIcon />, to: '/work-today' },
     { text: 'Send Letters', icon: <MailIcon />, to: '/send-letters' },
+    { text: 'Settings', icon: <SettingsIcon />, to: '/settings' },
   ];
 
   const drawer = (
@@ -88,6 +93,12 @@ export default function Layout({ children }) {
           <IconButton color="inherit" onClick={toggleColorMode}>
             {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
+          <Chip
+            label={mode === 'testing' ? 'Testing Mode' : 'Real Mode'}
+            color={mode === 'testing' ? 'warning' : 'success'}
+            size="small"
+            sx={{ ml: 2 }}
+          />
         </Toolbar>
       </AppBar>
       <Box
