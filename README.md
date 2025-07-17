@@ -72,6 +72,9 @@ values for your setup.
 - `BOT_START_URL` — endpoint to start or ping the bot service
 - `APP_MODE` — "real" or "testing" to control how the bot generates letters
 - `AWS_REGION`, `AWS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — storage credentials
+- `JWT_SECRET` — secret key for signing JSON Web Tokens
+- `ADMIN_USER` — default admin username
+- `ADMIN_PASS` — default admin password
 
 ### Bot
 
