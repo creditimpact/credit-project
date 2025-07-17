@@ -8,7 +8,7 @@ const CustomersContext = React.createContext({
 });
 
 export default function CustomersProvider({ children }) {
-  const { token } = React.useContext(AuthContext);
+  const { token, logout } = React.useContext(AuthContext);
   const [customers, setCustomers] = React.useState([]);
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
@@ -22,7 +22,8 @@ export default function CustomersProvider({ children }) {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (res.status === 401) {
-        console.error('Unauthorized when fetching customers');
+        logout();
+        window.location.assign('/login');
         return;
       }
       const data = await res.json();
@@ -39,7 +40,7 @@ export default function CustomersProvider({ children }) {
     } catch (err) {
       console.error(err);
     }
-  }, [token]);
+  }, [token, logout]);
 
   React.useEffect(() => {
     if (token) {
