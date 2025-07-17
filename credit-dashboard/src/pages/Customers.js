@@ -57,7 +57,7 @@ export default function Customers() {
   const { mode } = React.useContext(AppModeContext);
   const { token } = React.useContext(AuthContext);
 
-  const BACKEND_URL = "http://localhost:5000";
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
   const API_URL = `${BACKEND_URL}/api/customers`;
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 

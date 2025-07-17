@@ -79,6 +79,10 @@ values for your setup.
 - The same AWS variables as above if uploading to the same bucket
 - Any additional API keys (e.g., OpenAI) placed in `.env`
 
+### Frontend
+
+- `REACT_APP_BACKEND_URL` — base URL for the backend API (leave empty for same-origin)
+
 ## 📂 Uploads structure
 
 Uploaded files are stored under the `backend/uploads` folder when running

@@ -2,12 +2,14 @@ import React from 'react';
 
 const AuthContext = React.createContext({ token: null, login: async () => false });
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+
 export default function AuthProvider({ children }) {
   const [token, setToken] = React.useState(() => localStorage.getItem('token'));
 
   const login = async (username, password) => {
     try {
-      const res = await fetch('http://localhost:5000/api/login', {
+      const res = await fetch(`${BACKEND_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
