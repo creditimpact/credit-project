@@ -56,8 +56,9 @@ export default function WorkToday() {
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
   React.useEffect(() => {
+    if (!token) return;
     const fetchData = () => {
-      fetch(API_URL, { headers: authHeaders })
+      fetch(API_URL, { headers: { Authorization: `Bearer ${token}` } })
         .then(res => res.json())
         .then(data => {
           const mapped = data.map((c) => ({
@@ -73,7 +74,7 @@ export default function WorkToday() {
     fetchData();
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [token]);
 
   return (
     <Container sx={{ mt: 4 }}>
