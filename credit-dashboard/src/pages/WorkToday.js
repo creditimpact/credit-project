@@ -52,14 +52,26 @@ export default function WorkToday() {
   const [rows, setRows] = React.useState([]);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
   const API_URL = `${BACKEND_URL}/api/customers/today`;
-  const { token } = React.useContext(AuthContext);
+  const { token, logout } = React.useContext(AuthContext);
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const checkAuth = (res) => {
+    if (res.status === 401) {
+      logout();
+      window.location.assign('/login');
+      return true;
+    }
+    return false;
+  };
 
   React.useEffect(() => {
     if (!token) return;
     const fetchData = () => {
       fetch(API_URL, { headers: { Authorization: `Bearer ${token}` } })
-        .then(res => res.json())
+        .then(res => {
+          if (checkAuth(res)) return Promise.reject('unauthorized');
+          return res.json();
+        })
         .then(data => {
           const mapped = data.map((c) => ({
             ...c,

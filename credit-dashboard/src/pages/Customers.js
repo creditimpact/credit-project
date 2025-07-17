@@ -56,7 +56,16 @@ export default function Customers() {
   const fileInputRef = React.useRef();
 
   const { mode } = React.useContext(AppModeContext);
-  const { token } = React.useContext(AuthContext);
+  const { token, logout } = React.useContext(AuthContext);
+
+  const checkAuth = (res) => {
+    if (res.status === 401) {
+      logout();
+      window.location.assign('/login');
+      return true;
+    }
+    return false;
+  };
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
   const API_URL = `${BACKEND_URL}/api/customers`;
@@ -84,7 +93,10 @@ export default function Customers() {
       headers: { "Content-Type": "application/json", ...authHeaders },
       body: JSON.stringify(payload),
     })
-      .then(res => res.json())
+      .then(res => {
+        if (checkAuth(res)) return Promise.reject('unauthorized');
+        return res.json();
+      })
       .then(data => {
         const updated = { ...data, id: data.id || data._id };
         setRows((prev) => prev.map((row) => (row.id === updated.id ? updated : row)));
@@ -100,7 +112,10 @@ export default function Customers() {
       headers: { "Content-Type": "application/json", ...authHeaders },
       body: JSON.stringify(payload),
     })
-      .then(res => res.json())
+      .then(res => {
+        if (checkAuth(res)) return Promise.reject('unauthorized');
+        return res.json();
+      })
       .then(data => {
         const mapped = { ...data, id: data.id || data._id };
         setRows((prev) => [...prev, mapped]);
@@ -128,7 +143,10 @@ export default function Customers() {
       headers: authHeaders,
       body: formData,
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (checkAuth(res)) return Promise.reject('unauthorized');
+        return res.json();
+      })
       .then((data) => {
         setRows((prev) =>
           prev.map((row) =>
@@ -151,7 +169,10 @@ export default function Customers() {
   const confirmDeleteCustomer = () => {
     if (!deleteId) return;
     fetch(`${API_URL}/${deleteId}`, { method: "DELETE", headers: authHeaders })
-      .then(res => res.json())
+      .then(res => {
+        if (checkAuth(res)) return Promise.reject('unauthorized');
+        return res.json();
+      })
       .then(() => {
         setRows((prev) => prev.filter((row) => row.id !== deleteId));
         setSnackbar('Customer deleted');
@@ -161,7 +182,10 @@ export default function Customers() {
 
   const handleDeleteReport = (id) => {
     fetch(`${BACKEND_URL}/api/upload/${id}`, { method: 'DELETE', headers: authHeaders })
-      .then((res) => res.json())
+      .then((res) => {
+        if (checkAuth(res)) return Promise.reject('unauthorized');
+        return res.json();
+      })
       .then(() => {
         setRows((prev) =>
           prev.map((row) =>
@@ -183,7 +207,10 @@ export default function Customers() {
       },
       body: JSON.stringify({ status: 'In Progress', mode }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (checkAuth(res)) return Promise.reject('unauthorized');
+        return res.json();
+      })
       .then((data) => {
         const updated = { ...data.customer, id: data.customer._id };
         setRows((prev) => prev.map((row) => (row.id === id ? updated : row)));

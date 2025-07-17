@@ -72,8 +72,17 @@ const columns = [
 
 export default function SendLetters() {
   const [rows, setRows] = React.useState([]);
-  const { token } = React.useContext(AuthContext);
+  const { token, logout } = React.useContext(AuthContext);
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const checkAuth = (res) => {
+    if (res.status === 401) {
+      logout();
+      window.location.assign('/login');
+      return true;
+    }
+    return false;
+  };
 
   const markCompleted = (id) => {
     fetch(`${BACKEND_URL}/api/customers/${id}`, {
@@ -81,7 +90,10 @@ export default function SendLetters() {
       headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ status: 'Completed' }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (checkAuth(res)) return Promise.reject('unauthorized');
+        return res.json();
+      })
       .then(() => {
         setRows((prev) => prev.filter((r) => r.id !== id));
       })
@@ -91,7 +103,10 @@ export default function SendLetters() {
   React.useEffect(() => {
     if (!token) return;
     fetch(API_URL, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.json())
+      .then((res) => {
+        if (checkAuth(res)) return Promise.reject('unauthorized');
+        return res.json();
+      })
       .then((data) => {
         const mapped = data.map((c) => ({
           ...c,
