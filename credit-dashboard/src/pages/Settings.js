@@ -1,9 +1,11 @@
 import React from 'react';
 import { Typography, Button, Stack, Chip } from '@mui/material';
 import { AppModeContext } from '../ModeContext';
+import { CustomersContext } from '../CustomersContext';
 
 export default function Settings() {
   const { mode, setMode } = React.useContext(AppModeContext);
+  const { refreshCustomers } = React.useContext(CustomersContext);
 
   return (
     <Stack spacing={3}>
@@ -28,6 +30,11 @@ export default function Settings() {
           onClick={() => setMode('real')}
         >
           Real Mode
+        </Button>
+      </Stack>
+      <Stack direction="row">
+        <Button variant="outlined" onClick={refreshCustomers}>
+          Refresh Customers
         </Button>
       </Stack>
     </Stack>

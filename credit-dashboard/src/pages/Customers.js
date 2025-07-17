@@ -10,6 +10,7 @@ import AddCustomerDialog from '../components/AddCustomerDialog';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { AppModeContext } from '../ModeContext';
 import { AuthContext } from '../AuthContext';
+import { CustomersContext } from '../CustomersContext';
 
 const formColumns = [
   { field: 'customerName', headerName: 'Customer Name', width: 150, editable: true },
@@ -46,7 +47,7 @@ const formColumns = [
 ];
 
 export default function Customers() {
-  const [rows, setRows] = React.useState([]);
+  const { customers: rows, setCustomers: setRows, refreshCustomers } = React.useContext(CustomersContext);
   const [open, setOpen] = React.useState(false);
   const [newCustomer, setNewCustomer] = React.useState({ status: 'New', roundNumber: 1 });
   const [snackbar, setSnackbar] = React.useState('');
@@ -62,19 +63,10 @@ export default function Customers() {
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
   React.useEffect(() => {
-    if (!token) return;
-    fetch(API_URL, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(data => {
-        const mapped = data.map((c) => ({
-          ...c,
-          id: c.id || c._id,
-          startDate: c.startDate ? c.startDate.slice(0, 10) : ''
-        }));
-        setRows(mapped);
-      })
-      .catch(err => console.error(err));
-  }, [token]);
+    if (token) {
+      refreshCustomers();
+    }
+  }, [token, refreshCustomers]);
 
   const requiredFields = ['customerName', 'phone', 'email', 'address', 'startDate'];
 
