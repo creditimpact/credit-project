@@ -14,6 +14,11 @@ module.exports = function (req, res, next) {
     req.user = decoded;
     next();
   } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      console.error('JWT verification error:', err);
+      return res.status(401).json({ error: 'Token expired' });
+    }
+    console.error('JWT verification error:', err);
     return res.status(401).json({ error: 'Invalid token' });
   }
 };
