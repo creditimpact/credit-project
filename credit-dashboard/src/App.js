@@ -9,6 +9,7 @@ import Layout from './Layout';
 import Login from './pages/Login';
 import AuthProvider from './AuthContext';
 import RequireAuth from './RequireAuth';
+import CustomersProvider from './CustomersContext';
 
 function PrivateRoutes() {
   return (
@@ -35,7 +36,9 @@ function App() {
             path="/*"
             element={
               <RequireAuth>
-                <PrivateRoutes />
+                <CustomersProvider>
+                  <PrivateRoutes />
+                </CustomersProvider>
               </RequireAuth>
             }
           />
