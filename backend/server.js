@@ -1,14 +1,12 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const cron = require('node-cron');
 const axios = require('axios');
 const Customer = require('./models/Customer');
 const authRoutes = require('./routes/auth');
 const authMiddleware = require('./middleware/auth');
-
-dotenv.config();
 
 function resolveMode(value) {
   return String(value || '').toLowerCase().startsWith('test') ? 'testing' : 'real';
