@@ -62,7 +62,8 @@ export default function Customers() {
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
   React.useEffect(() => {
-    fetch(API_URL, { headers: authHeaders })
+    if (!token) return;
+    fetch(API_URL, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => res.json())
       .then(data => {
         const mapped = data.map((c) => ({
@@ -73,7 +74,7 @@ export default function Customers() {
         setRows(mapped);
       })
       .catch(err => console.error(err));
-  }, []);
+  }, [token]);
 
   const requiredFields = ['customerName', 'phone', 'email', 'address', 'startDate'];
 

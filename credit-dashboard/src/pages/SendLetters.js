@@ -89,7 +89,8 @@ export default function SendLetters() {
   };
 
   React.useEffect(() => {
-    fetch(API_URL, { headers: authHeaders })
+    if (!token) return;
+    fetch(API_URL, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json())
       .then((data) => {
         const mapped = data.map((c) => ({
@@ -100,7 +101,7 @@ export default function SendLetters() {
         setRows(mapped);
       })
       .catch((err) => console.error(err));
-  }, []);
+  }, [token]);
 
   return (
     <Container sx={{ mt: 4 }}>
