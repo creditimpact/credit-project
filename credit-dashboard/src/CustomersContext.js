@@ -15,12 +15,21 @@ export default function CustomersProvider({ children }) {
   const API_URL = `${BACKEND_URL}/api/customers`;
 
   const refreshCustomers = React.useCallback(async () => {
-    if (!token) return;
+    const authToken = token || localStorage.getItem('token');
+    if (!authToken) return;
     try {
       const res = await fetch(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
+      if (res.status === 401) {
+        console.error('Unauthorized when fetching customers');
+        return;
+      }
       const data = await res.json();
+      if (!Array.isArray(data)) {
+        console.error('Expected array but got:', data);
+        return;
+      }
       const mapped = data.map((c) => ({
         ...c,
         id: c.id || c._id,
