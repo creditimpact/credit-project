@@ -50,7 +50,8 @@ const columns = [
 
 export default function WorkToday() {
   const [rows, setRows] = React.useState([]);
-  const API_URL = 'http://localhost:5000/api/customers/today';
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+  const API_URL = `${BACKEND_URL}/api/customers/today`;
   const { token } = React.useContext(AuthContext);
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 

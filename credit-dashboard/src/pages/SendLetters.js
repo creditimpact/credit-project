@@ -6,7 +6,7 @@ import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import { AuthContext } from '../AuthContext';
 
-const BACKEND_URL = 'http://localhost:5000';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API_URL = `${BACKEND_URL}/api/customers/letters-ready`;
 
 const columns = [
