@@ -75,7 +75,7 @@ values for your setup.
 - `AWS_REGION`, `AWS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — storage credentials
 - `JWT_SECRET` — secret key for signing JSON Web Tokens
 - `ADMIN_USER` — default admin username
-- `ADMIN_PASS` — default admin password
+- `ADMIN_PASS_HASH` — scrypt hash of the admin password in the form `salt$hash`
 
 ### Bot
 
