@@ -68,6 +68,7 @@ values for your setup.
 
 - `MONGO_URI` — MongoDB connection string
 - `PORT` — port for the Node server (default 5000)
+- `ALLOWED_ORIGIN` — origin allowed for CORS requests
 - `BOT_PROCESS_URL` — bot endpoint for processing requests
 - `BOT_START_URL` — endpoint to start or ping the bot service
 - `APP_MODE` — "real" or "testing" to control how the bot generates letters
