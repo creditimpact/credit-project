@@ -18,7 +18,7 @@ Environment variables are read from a `.env` file or the environment:
 - `AWS_S3_BUCKET`
 - `AWS_REGION`
 - `BACKEND_URL` (e.g. `http://localhost:5000`)
- - `BOT_TOKEN` — JWT token used to call the backend `/api/bot/*` endpoints
+ - `BOT_TOKEN` — shared secret used to call the backend `/api/bot/*` endpoints
 - `PORT` (default 6000)
 - `APP_MODE` (optional) — default mode when no header/body value is provided
 
