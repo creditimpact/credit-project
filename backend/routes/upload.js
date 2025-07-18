@@ -6,6 +6,15 @@ const path = require('path');
 const AWS = require('aws-sdk');
 const Customer = require('../models/Customer');
 
+const objectIdPattern = /^[a-f0-9]{24}$/i;
+
+router.param('id', (req, res, next, id) => {
+  if (!objectIdPattern.test(id)) {
+    return res.status(400).json({ error: 'Invalid ID' });
+  }
+  next();
+});
+
 // הגדרה של אחסון מקומי
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
 const ALLOWED_TYPES = ['application/pdf'];

@@ -5,6 +5,15 @@ const path = require('path');
 const AWS = require('aws-sdk');
 const Customer = require('../models/Customer');
 
+const objectIdPattern = /^[a-f0-9]{24}$/i;
+
+router.param('id', (req, res, next, id) => {
+  if (!objectIdPattern.test(id)) {
+    return res.status(400).json({ error: 'Invalid ID' });
+  }
+  next();
+});
+
 // Create new customer
 router.post('/', async (req, res) => {
   try {
