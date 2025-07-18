@@ -7,6 +7,9 @@ const AWS = require('aws-sdk');
 const Customer = require('../models/Customer');
 
 // הגדרה של אחסון מקומי
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
+const ALLOWED_TYPES = ['application/pdf'];
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = path.join('uploads', 'reports', req.params.id);
@@ -19,13 +22,34 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname));
+    }
+  },
+});
 
-router.post('/:id', upload.single('file'), async (req, res) => {
-  try {
-    const customerId = req.params.id;
-    const file = req.file;
-    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+router.post('/:id', (req, res) => {
+  upload.single('file')(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      let msg = 'Upload error';
+      if (err.code === 'LIMIT_FILE_SIZE') msg = 'File too large';
+      if (err.code === 'LIMIT_UNEXPECTED_FILE') msg = 'Invalid file type';
+      return res.status(400).json({ error: msg });
+    } else if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Upload failed' });
+    }
+
+    try {
+      const customerId = req.params.id;
+      const file = req.file;
+      if (!file) return res.status(400).json({ error: 'No file uploaded' });
 
     let url = `${req.protocol}://${req.get('host')}/uploads/reports/${customerId}/${file.filename}`;
 
@@ -59,6 +83,7 @@ router.post('/:id', upload.single('file'), async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Upload failed' });
   }
+  });
 });
 
 // Delete a credit report
