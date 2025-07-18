@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const Customer = require('../models/Customer');
+const authMiddleware = require('../middleware/auth');
+const botAuth = require('../middleware/authBot');
 
 function getMode(req) {
   const value =
@@ -77,11 +79,11 @@ const updateStatus = async (req, res) => {
   }
 };
 
-router.put('/:id/status', updateStatus);
-router.patch('/:id/status', updateStatus);
+router.put('/:id/status', authMiddleware, updateStatus);
+router.patch('/:id/status', authMiddleware, updateStatus);
 
 // Endpoint for bot to send results
-router.post('/result', async (req, res) => {
+router.post('/result', botAuth, async (req, res) => {
   try {
     const { clientId, letters, error } = req.body;
     let update;
