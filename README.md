@@ -80,7 +80,7 @@ values for your setup.
 ### Bot
 
 - `BACKEND_URL` — URL to the backend callback endpoint
- - `BOT_TOKEN` — JWT token used when the bot service calls `/api/bot/*`
+ - `BOT_TOKEN` — shared secret used when the bot service calls `/api/bot/*`
 - The same AWS variables as above if uploading to the same bucket
 - Any additional API keys (e.g., OpenAI) placed in `.env`
 
