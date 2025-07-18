@@ -1,8 +1,13 @@
 # Node.js dependencies
 node_modules/
 
+# Python virtual environment
+venv/
+bot_service/venv/
+
 # Environment files
 .env
+*.env
 
 # Log files
 npm-debug.log*
