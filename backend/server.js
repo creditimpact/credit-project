@@ -50,7 +50,8 @@ app.use('/api', authRoutes);
 app.use('/api/customers', authMiddleware, customersRoutes);
 app.use('/api/clients', authMiddleware, customersRoutes); // alias for convenience
 app.use('/api/upload', authMiddleware, uploadRoutes);
-app.use('/api/bot', authMiddleware, botRoutes);
+// Bot routes handle their own authentication
+app.use('/api/bot', botRoutes);
 
 // simple health endpoint
 app.get('/api/status', (req, res) => {
