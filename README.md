@@ -98,6 +98,9 @@ locally so that both services reference the same directory.
 
 Folders are created automatically if they do not exist.
 
+Uploads are limited to **10MB** and must be PDF files. Any other type or larger
+file will be rejected with a `400` error.
+
 ## 📄 Recommended start order
 
 1️⃣ Start the **bot service** (Python) first — so the backend can communicate with it.  
