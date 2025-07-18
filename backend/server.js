@@ -13,12 +13,13 @@ function resolveMode(value) {
 }
 
 const DEFAULT_MODE = resolveMode(process.env.APP_MODE || 'real');
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
