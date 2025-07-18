@@ -8,7 +8,7 @@ This Python service receives credit report URLs, generates dispute letters, uplo
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python app.py
+python main.py
 ```
 
 Environment variables are read from a `.env` file or the environment:
