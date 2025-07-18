@@ -111,11 +111,43 @@ Folders are created automatically if they do not exist.
      ←-------- Results ---------
 ```
 
+## 🐳 Docker Compose
+
+A `docker-compose.yml` file is included for a quick local setup. It starts
+MongoDB, the backend API, the bot service and the frontend in one command:
+
+```bash
+docker-compose up --build
+```
+
+Edit the environment variables in the compose file if you need to adjust
+connections or credentials.
+
 ## ✅ Testing
 
 - Make sure all three servers run without errors.
 - Open the frontend at `http://localhost:3000` and confirm everything loads.
 - Optionally, use Postman to test API endpoints.
+
+## ☁️ AWS deployment
+
+1. **Build and push images** to [Amazon ECR](https://aws.amazon.com/ecr/):
+
+   ```bash
+   docker build -t my-backend ./backend
+   docker build -t my-bot ./bot_service
+   docker tag my-backend <account>.dkr.ecr.<region>.amazonaws.com/my-backend
+   docker tag my-bot <account>.dkr.ecr.<region>.amazonaws.com/my-bot
+   docker push <account>.dkr.ecr.<region>.amazonaws.com/my-backend
+   docker push <account>.dkr.ecr.<region>.amazonaws.com/my-bot
+   ```
+
+2. **Create an ECS service or Elastic Beanstalk environment** using the pushed
+   images. Set the same environment variables shown in `docker-compose.yml`.
+   MongoDB can be provided by an Atlas cluster or a self‑hosted container.
+
+3. **Deploy updates** by rebuilding the images, pushing them to ECR and
+   redeploying the service.
 
 ## 💬 Questions?
 
