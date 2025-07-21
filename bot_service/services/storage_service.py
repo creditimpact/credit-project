@@ -36,6 +36,8 @@ def upload_file(local_path: str, key: str) -> str:
     Returns the URL to the uploaded file or the local file path when saved
     to disk.
     """
+    if BUCKET and not _s3_client:
+        logger.warning("S3 upload skipped: boto3 not available or AWS credentials not set")
     if BUCKET and _s3_client:
         try:
             _s3_client.upload_file(local_path, BUCKET, key)
