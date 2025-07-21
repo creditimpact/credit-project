@@ -28,13 +28,6 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
-=======
-# טעינת משתני סביבה
-load_dotenv()
-
-# יצירת אינסטנס של Flask
->>>>>>> 3d4cd18 (WIP: local changes before pulling)
 app = Flask(__name__)
 
 def create_sample_letter(text: str, output_path: str):
@@ -102,9 +95,9 @@ def process():
 
                 for pdf in letter_dir.glob("*.pdf"):
                     key = f"letters/{client_id}/{pdf.name}"
-                    url = upload_file(str(pdf), key)
-                    logger.info("Uploaded letter %s -> %s", key, url)
-                    letters.append({"name": pdf.name, "url": url})
+                    upload_file(str(pdf), key)
+                    logger.info("Uploaded letter %s", key)
+                    letters.append({"name": pdf.name, "key": key})
 
                 logger.info("Generated %d letters", len(letters))
             except Exception as e:
@@ -117,9 +110,9 @@ def process():
                 letter_path = f.name
             logger.info("Generated fallback letter PDF at %s", letter_path)
             key = f"letters/{client_id}/dispute_letter.pdf"
-            url = upload_file(letter_path, key)
-            logger.info("Uploaded letter %s -> %s", key, url)
-            letters = [{"name": "dispute_letter.pdf", "url": url}]
+            upload_file(letter_path, key)
+            logger.info("Uploaded letter %s", key)
+            letters = [{"name": "dispute_letter.pdf", "key": key}]
 
         send_results(client_id, letters)
         logger.info("Results sent to backend")

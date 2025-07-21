@@ -3,11 +3,12 @@ import { DataGrid } from '@mui/x-data-grid';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
 import { AuthContext } from '../AuthContext';
+import { getSignedUrl } from '../utils';
 
 
-
-const columns = [
+const BASE_COLUMNS = [
   { field: 'customerName', headerName: 'Customer Name', width: 150 },
   { field: 'phone', headerName: 'Phone', width: 130 },
   { field: 'email', headerName: 'Email', width: 180 },
@@ -23,14 +24,7 @@ const columns = [
       <a href={params.value} target="_blank" rel="noopener noreferrer">Open</a>
     ),
   },
-  {
-    field: 'creditReport',
-    headerName: 'Credit Report Link',
-    width: 180,
-    renderCell: (params) => (
-      <a href={params.value} target="_blank" rel="noopener noreferrer">Report</a>
-    ),
-  },
+  // creditReport column added in component
   { field: 'smartCreditInfo', headerName: 'SmartCredit Login Info', width: 180 },
   {
     field: 'fullFile',
@@ -54,6 +48,31 @@ export default function WorkToday() {
   const API_URL = `${BACKEND_URL}/api/customers/today`;
   const { token, logout } = React.useContext(AuthContext);
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const columns = React.useMemo(() => [
+    ...BASE_COLUMNS,
+    {
+      field: 'creditReport',
+      headerName: 'Credit Report Link',
+      width: 180,
+      renderCell: (params) => (
+        <Button
+          variant="text"
+          size="small"
+          onClick={async () => {
+            try {
+              const url = await getSignedUrl(params.value, authHeaders, BACKEND_URL);
+              window.open(url, '_blank');
+            } catch {
+              console.error('Failed to get link');
+            }
+          }}
+        >
+          Report
+        </Button>
+      ),
+    },
+  ], [authHeaders, BACKEND_URL]);
 
   const checkAuth = (res) => {
     if (res.status === 401) {

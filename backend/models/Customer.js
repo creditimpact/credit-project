@@ -22,7 +22,7 @@ const CustomerSchema = new mongoose.Schema({
   letters: [
     {
       name: String,
-      url: String
+      key: String
     }
   ]
 });

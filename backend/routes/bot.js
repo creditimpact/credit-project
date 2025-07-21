@@ -4,6 +4,7 @@ const axios = require('axios');
 const Customer = require('../models/Customer');
 const authMiddleware = require('../middleware/auth');
 const botAuth = require('../middleware/authBot');
+const { getSignedUrl } = require('../utils/files');
 
 function getMode(req) {
   const value =
@@ -38,7 +39,7 @@ const updateStatus = async (req, res) => {
     if (status === 'In Progress') {
       const payload = {
         clientId: customer._id,
-        creditReportUrl: customer.creditReport,
+        creditReportUrl: getSignedUrl(customer.creditReport, req),
         customerName: customer.customerName,
         phone: customer.phone,
         email: customer.email,

@@ -60,7 +60,8 @@ router.post('/:id', (req, res) => {
       const file = req.file;
       if (!file) return res.status(400).json({ error: 'No file uploaded' });
 
-    let url = `${req.protocol}://${req.get('host')}/uploads/reports/${customerId}/${file.filename}`;
+    let key = `reports/${customerId}/${file.filename}`;
+    let url = `${req.protocol}://${req.get('host')}/uploads/${key}`;
 
     if (process.env.AWS_S3_BUCKET) {
       const s3 = new AWS.S3({
@@ -68,18 +69,16 @@ router.post('/:id', (req, res) => {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       });
-      const key = `reports/${customerId}/${file.filename}`;
       await s3
         .upload({ Bucket: process.env.AWS_S3_BUCKET, Key: key, Body: fs.createReadStream(file.path), ContentType: file.mimetype })
         .promise();
-      url = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
       fs.unlinkSync(file.path);
     }
 
     const customer = await Customer.findById(customerId);
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
 
-    customer.creditReport = url;
+    customer.creditReport = key;
 
     if (customer.status === 'Needs Updated Report') {
       customer.status = 'Ready';
@@ -87,7 +86,7 @@ router.post('/:id', (req, res) => {
 
     await customer.save();
 
-    res.json({ message: 'File uploaded', url });
+    res.json({ message: 'File uploaded', key });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Upload failed' });
@@ -102,20 +101,18 @@ router.delete('/:id', async (req, res) => {
     const customer = await Customer.findById(customerId);
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
 
-    const url = customer.creditReport;
-    if (!url) return res.status(400).json({ error: 'No credit report to delete' });
+    const key = customer.creditReport;
+    if (!key) return res.status(400).json({ error: 'No credit report to delete' });
 
-    if (process.env.AWS_S3_BUCKET && url.includes('amazonaws.com')) {
+    if (process.env.AWS_S3_BUCKET) {
       const s3 = new AWS.S3({
         region: process.env.AWS_REGION,
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       });
-      const key = new URL(url).pathname.slice(1);
       await s3.deleteObject({ Bucket: process.env.AWS_S3_BUCKET, Key: key }).promise();
     } else {
-      const relative = url.replace(/^.*\/uploads\//, '');
-      const localPath = path.join('uploads', relative);
+      const localPath = path.join('uploads', key);
       if (fs.existsSync(localPath)) fs.unlinkSync(localPath);
     }
 
