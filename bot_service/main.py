@@ -1,4 +1,11 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from the service's .env file explicitly before any
+# other imports use them. This ensures modules like `storage_service` see the
+# correct values even when the working directory differs.
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
 import tempfile
 import requests
 from pathlib import Path
@@ -15,13 +22,10 @@ from logic import (
     instructions_generator,
 )
 from config.settings import BOT_PORT
-from dotenv import load_dotenv
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
-
-load_dotenv()
 
 app = Flask(__name__)
 
