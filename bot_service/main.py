@@ -88,6 +88,7 @@ def process():
                 for pdf in letter_dir.glob("*.pdf"):
                     key = f"letters/{client_id}/{pdf.name}"
                     url = upload_file(str(pdf), key)
+                    logger.info("Uploaded letter %s -> %s", key, url)
                     letters.append({"name": pdf.name, "url": url})
 
                 logger.info("Generated %d letters", len(letters))
@@ -102,6 +103,7 @@ def process():
             logger.info("Generated fallback letter PDF at %s", letter_path)
             key = f"letters/{client_id}/dispute_letter.pdf"
             url = upload_file(letter_path, key)
+            logger.info("Uploaded letter %s -> %s", key, url)
             letters = [{"name": "dispute_letter.pdf", "url": url}]
 
         send_results(client_id, letters)
