@@ -26,6 +26,16 @@ if BUCKET and boto3:
         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
     )
+    cred_preview = (os.getenv("AWS_ACCESS_KEY_ID") or "")[:4]
+    logging.getLogger(__name__).info(
+        "Initialized S3 client BUCKET=%s REGION=%s ACCESS_KEY=%s****",
+        BUCKET,
+        REGION,
+        cred_preview,
+    )
+else:
+    reason = "no bucket configured" if not BUCKET else "boto3 unavailable"
+    logging.getLogger(__name__).info("S3 client not initialized: %s", reason)
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +46,19 @@ def upload_file(local_path: str, key: str) -> str:
     Returns the URL to the uploaded file or the local file path when saved
     to disk.
     """
+    logger.info(
+        "[upload_file] BUCKET=%s REGION=%s _s3_client=%s ACCESS_KEY=%s****",
+        BUCKET,
+        REGION,
+        _s3_client is not None,
+        (os.getenv("AWS_ACCESS_KEY_ID") or "")[:4],
+    )
+
+    logger.info("[upload_file] Trying to upload %s with key %s", local_path, key)
+
     if BUCKET and not _s3_client:
         logger.warning("S3 upload skipped: boto3 not available or AWS credentials not set")
+
     if BUCKET and _s3_client:
         try:
             _s3_client.upload_file(local_path, BUCKET, key)
@@ -51,5 +72,5 @@ def upload_file(local_path: str, key: str) -> str:
     dest_path = LOCAL_UPLOAD_DIR / key
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(local_path, dest_path)
-    logger.info("Saved %s locally at %s", key, dest_path)
+    logger.warning("Saved %s locally at %s (S3 upload skipped)", key, dest_path)
     return f"{BACKEND_URL}/uploads/{key}"
