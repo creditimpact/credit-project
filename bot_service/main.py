@@ -24,11 +24,18 @@ from logic import (
 from config.settings import BOT_PORT
 import logging
 
+# הגדרת הלוגים
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+<<<<<<< HEAD
+=======
+# טעינת משתני סביבה
+load_dotenv()
 
+# יצירת אינסטנס של Flask
+>>>>>>> 3d4cd18 (WIP: local changes before pulling)
+app = Flask(__name__)
 
 def create_sample_letter(text: str, output_path: str):
     c = canvas.Canvas(output_path)
@@ -50,6 +57,10 @@ def process():
     logger.info("Processing report for client %s in %s mode", client_id, mode)
 
     try:
+        # הדפסת BOT_TOKEN לצורך debugging
+        BOT_TOKEN = os.getenv("BOT_TOKEN")
+        print("📢 BOT_TOKEN = ", BOT_TOKEN)
+
         # Download credit report
         logger.info("Downloading report from %s", report_url)
         resp = requests.get(report_url, timeout=10)
