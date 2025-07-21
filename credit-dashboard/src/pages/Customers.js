@@ -238,6 +238,11 @@ export default function Customers() {
             variant="text"
             size="small"
             onClick={async () => {
+              if (!key || key === 'undefined') {
+                console.warn('Invalid credit report key', key);
+                setSnackbar('Invalid report link');
+                return;
+              }
               try {
                 const url = await getSignedUrl(key, authHeaders, BACKEND_URL);
                 window.open(url, '_blank');

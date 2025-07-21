@@ -26,6 +26,10 @@ function createColumns(authHeaders, backendUrl) {
               variant="outlined"
               size="small"
               onClick={async () => {
+                if (!l.key || l.key === 'undefined') {
+                  console.warn('Invalid letter key', l.key);
+                  return;
+                }
                 try {
                   const url = await getSignedUrl(l.key, authHeaders, backendUrl);
                   window.open(url, '_blank');
