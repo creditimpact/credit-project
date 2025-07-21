@@ -11,6 +11,8 @@ const s3 = process.env.AWS_S3_BUCKET
   : null;
 
 function getSignedUrl(key, req) {
+  if (/^https?:\/\//i.test(key)) return key;
+
   if (s3) {
     return s3.getSignedUrl('getObject', {
       Bucket: process.env.AWS_S3_BUCKET,
