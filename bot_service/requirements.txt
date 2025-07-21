@@ -11,5 +11,6 @@ openai>=1.0.0
 pdfkit
 jinja2
 python-dotenv
+boto3
 
 
