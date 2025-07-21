@@ -5,75 +5,84 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import { AuthContext } from '../AuthContext';
+import { getSignedUrl } from '../utils';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API_URL = `${BACKEND_URL}/api/customers/letters-ready`;
 
-const columns = [
-  { field: 'customerName', headerName: 'Customer Name', width: 180 },
-  {
-    field: 'letters',
-    headerName: 'Letters',
-    flex: 1,
-    minWidth: 300,
-    renderCell: (params) => (
-      <div
-        style={{ display: 'flex', flexWrap: 'wrap', gap: 8, overflowX: 'visible' }}
-      >
-        {params.value.map((l, i) => {
-          const fullUrl = l.url.startsWith('http')
-            ? l.url
-            : `${BACKEND_URL}${l.url.startsWith('/') ? '' : '/'}${l.url}`;
-          return (
-            <Button key={i} href={fullUrl} target="_blank" variant="outlined" size="small">
+function createColumns(authHeaders, backendUrl) {
+  return [
+    { field: 'customerName', headerName: 'Customer Name', width: 180 },
+    {
+      field: 'letters',
+      headerName: 'Letters',
+      flex: 1,
+      minWidth: 300,
+      renderCell: (params) => (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, overflowX: 'visible' }}>
+          {params.value.map((l, i) => (
+            <Button
+              key={i}
+              variant="outlined"
+              size="small"
+              onClick={async () => {
+                try {
+                  const url = await getSignedUrl(l.key, authHeaders, backendUrl);
+                  window.open(url, '_blank');
+                } catch {
+                  console.error('Failed to get link');
+                }
+              }}
+            >
               {l.name || `Letter ${i + 1}`}
             </Button>
-          );
-        })}
-      </div>
-    ),
-  },
-  {
-    field: 'status',
-    headerName: 'Status',
-    flex: 1,
-    minWidth: 220,
-    renderCell: (params) => {
-      const color =
-        params.row.status === 'Completed'
-          ? 'success'
-          : params.row.status === 'Needs Updated Report'
-          ? 'warning'
-          : 'info';
-      return (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Chip label={`Round ${params.row.roundNumber || 1}`} size="small" />
-          <Chip label={params.row.status} color={color} size="small" />
+          ))}
         </div>
-      );
+      ),
     },
-  },
-  {
-    field: 'actions',
-    headerName: 'Actions',
-    flex: 1,
-    minWidth: 150,
-    renderCell: (params) => (
-      <Button
-        variant="outlined"
-        size="small"
-        onClick={() => params.row.onMark()}
-      >
-        Mark Completed
-      </Button>
-    ),
-  },
-];
+    {
+      field: 'status',
+      headerName: 'Status',
+      flex: 1,
+      minWidth: 220,
+      renderCell: (params) => {
+        const color =
+          params.row.status === 'Completed'
+            ? 'success'
+            : params.row.status === 'Needs Updated Report'
+            ? 'warning'
+            : 'info';
+        return (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Chip label={`Round ${params.row.roundNumber || 1}`} size="small" />
+            <Chip label={params.row.status} color={color} size="small" />
+          </div>
+        );
+      },
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      flex: 1,
+      minWidth: 150,
+      renderCell: (params) => (
+        <Button variant="outlined" size="small" onClick={() => params.row.onMark()}>
+          Mark Completed
+        </Button>
+      ),
+    },
+  ];
+}
 
 export default function SendLetters() {
   const [rows, setRows] = React.useState([]);
   const { token, logout } = React.useContext(AuthContext);
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const columns = React.useMemo(
+    () => createColumns(authHeaders, BACKEND_URL),
+    [authHeaders, BACKEND_URL]
+  );
 
   const checkAuth = (res) => {
     if (res.status === 401) {

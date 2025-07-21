@@ -11,6 +11,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import { AppModeContext } from '../ModeContext';
 import { AuthContext } from '../AuthContext';
 import { CustomersContext } from '../CustomersContext';
+import { getSignedUrl } from '../utils';
 
 const formColumns = [
   { field: 'customerName', headerName: 'Customer Name', width: 150, editable: true },
@@ -150,7 +151,7 @@ export default function Customers() {
       .then((data) => {
         setRows((prev) =>
           prev.map((row) =>
-            row.id === uploadId ? { ...row, creditReport: data.url } : row
+            row.id === uploadId ? { ...row, creditReport: data.key } : row
           )
         );
         setSnackbar('Credit report uploaded successfully ✅');
@@ -225,22 +226,25 @@ export default function Customers() {
     width: 220,
     editable: true,
     renderCell: (params) => {
-      const url = params.value;
-      if (!url || params.row.status === 'Needs Updated Report') {
+      const key = params.value;
+      if (!key || params.row.status === 'Needs Updated Report') {
         return (
           <span style={{ color: 'red' }}>Upload a new report to start the next round</span>
         );
       }
-      const fullUrl = url.startsWith('http') ? url : `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}` + url;
       return (
         <div style={{ display: 'flex', gap: 8 }}>
           <Button
             variant="text"
             size="small"
-            component="a"
-            href={fullUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={async () => {
+              try {
+                const url = await getSignedUrl(key, authHeaders, BACKEND_URL);
+                window.open(url, '_blank');
+              } catch {
+                setSnackbar('Failed to get link');
+              }
+            }}
           >
             View Report
           </Button>

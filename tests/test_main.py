@@ -55,7 +55,7 @@ def test_process_testing_mode(monkeypatch, tmp_path):
     uploaded = {}
     def fake_upload(local, key):
         uploaded[key] = True
-        return f'url/{key}'
+        return key
     monkeypatch.setattr(bot_main, 'upload_file', fake_upload)
 
     results = {}
@@ -71,6 +71,7 @@ def test_process_testing_mode(monkeypatch, tmp_path):
     assert results['cid'] == 'c1'
     assert results['letters']
     assert results['letters'][0]['name'].endswith('.pdf')
+    assert results['letters'][0]['key']
 
 
 def test_process_real_mode_fallback(monkeypatch, tmp_path):
@@ -83,7 +84,7 @@ def test_process_real_mode_fallback(monkeypatch, tmp_path):
     uploaded = {}
     def fake_upload(local, key):
         uploaded[key] = True
-        return f'url/{key}'
+        return key
     monkeypatch.setattr(bot_main, 'upload_file', fake_upload)
 
     results = {}

@@ -7,6 +7,7 @@ const axios = require('axios');
 const Customer = require('./models/Customer');
 const authRoutes = require('./routes/auth');
 const authMiddleware = require('./middleware/auth');
+const { getSignedUrl } = require('./utils/files');
 
 function resolveMode(value) {
   return String(value || '').toLowerCase().startsWith('test') ? 'testing' : 'real';
@@ -45,11 +46,13 @@ mongoose
 const customersRoutes = require('./routes/customers');
 const uploadRoutes = require('./routes/upload');
 const botRoutes = require('./routes/bot');
+const filesRoutes = require('./routes/files');
 
 app.use('/api', authRoutes);
 app.use('/api/customers', authMiddleware, customersRoutes);
 app.use('/api/clients', authMiddleware, customersRoutes); // alias for convenience
 app.use('/api/upload', authMiddleware, uploadRoutes);
+app.use('/api/files', filesRoutes); // auth inside route
 // Bot routes handle their own authentication
 app.use('/api/bot', botRoutes);
 
@@ -58,8 +61,10 @@ app.get('/api/status', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Static folder for uploaded files
-app.use('/uploads', express.static('uploads'));
+// Serve local uploads only when no S3 bucket is configured
+if (!process.env.AWS_S3_BUCKET) {
+  app.use('/uploads', express.static('uploads'));
+}
 
 app.get('/', (req, res) => {
   res.send('✅ Backend API is running!');
@@ -112,7 +117,7 @@ cron.schedule('*/5 * * * *', async () => {
 
     const payload = {
       clientId: customer._id,
-      creditReportUrl: customer.creditReport,
+      creditReportUrl: getSignedUrl(customer.creditReport),
       customerName: customer.customerName,
       phone: customer.phone,
       email: customer.email,

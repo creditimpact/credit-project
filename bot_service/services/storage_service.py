@@ -53,8 +53,7 @@ else:
 def upload_file(local_path: str, key: str) -> str:
     """Upload a file to S3 if configured or save locally.
 
-    Returns the URL to the uploaded file or the local file path when saved
-    to disk.
+    Returns the storage key for the uploaded file.
     """
     logger.info(
         "[upload_file] BUCKET=%s REGION=%s _s3_client=%s ACCESS_KEY=%s****",
@@ -72,9 +71,8 @@ def upload_file(local_path: str, key: str) -> str:
     if BUCKET and _s3_client:
         try:
             _s3_client.upload_file(local_path, BUCKET, key)
-            url = f"https://{BUCKET}.s3.{REGION}.amazonaws.com/{key}"
             logger.info("Uploaded %s to S3 bucket %s", key, BUCKET)
-            return url
+            return key
         except (BotoCoreError, ClientError) as e:
             raise RuntimeError(f"Failed to upload {key}: {e}")
 
@@ -83,4 +81,4 @@ def upload_file(local_path: str, key: str) -> str:
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(local_path, dest_path)
     logger.warning("Saved %s locally at %s (S3 upload skipped)", key, dest_path)
-    return f"{BACKEND_URL}/uploads/{key}"
+    return key
