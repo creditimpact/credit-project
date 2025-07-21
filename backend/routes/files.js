@@ -18,7 +18,13 @@ router.use(auth);
 
 router.get('/get-signed-url', (req, res) => {
   const key = req.query.key;
-  if (!key) return res.status(400).json({ error: 'Missing key' });
+  if (!key || key === 'undefined')
+    return res.status(400).json({ error: 'Invalid key' });
+
+  if (/^https?:\/\//i.test(key)) {
+    // Already a full URL, return as-is without signing
+    return res.json({ url: key });
+  }
 
   if (s3) {
     const url = s3.getSignedUrl('getObject', {
