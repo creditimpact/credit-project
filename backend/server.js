@@ -44,6 +44,19 @@ async function start() {
       logger.info('MongoDB connected');
       app.listen(PORT, () => {
         logger.info('Server running', { url: `http://localhost:${PORT}` });
+        if (process.env.BOT_START_URL) {
+          axios
+            .get(process.env.BOT_START_URL)
+            .then(() => {
+              logger.info('Pinged bot service', { url: process.env.BOT_START_URL });
+            })
+            .catch((err) => {
+              logger.warn('Failed to ping bot service', {
+                url: process.env.BOT_START_URL,
+                error: err.message,
+              });
+            });
+        }
       });
     })
     .catch((err) => logger.error('Mongo connection error', { error: err.message }));

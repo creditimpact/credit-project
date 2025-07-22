@@ -75,7 +75,7 @@ values for your setup.
 - `PORT` — port for the Node server (default 5000)
 - `ALLOWED_ORIGIN` — origin allowed for CORS requests
 - `BOT_PROCESS_URL` — bot endpoint for processing requests
-- `BOT_START_URL` — endpoint to start or ping the bot service
+- `BOT_START_URL` — optional URL the backend pings on startup to wake the bot
 - `APP_MODE` — "real" or "testing" to control how the bot generates letters
 - `AWS_REGION`, `AWS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — storage credentials
 - `AWS_SECRET_NAME` (or `AWS_SECRETS_NAME`) — name of the AWS Secrets Manager secret to load
