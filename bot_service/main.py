@@ -1,10 +1,12 @@
 import os
 from dotenv import load_dotenv
+from config.aws_secrets import load_aws_secrets
 
 # Load environment variables from the service's .env file explicitly before any
 # other imports use them. This ensures modules like `storage_service` see the
 # correct values even when the working directory differs.
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+load_aws_secrets()
 
 import tempfile
 import requests
@@ -28,7 +30,19 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
+import builtins
+
+def _print(*args, **kwargs):
+    logger.info(" ".join(str(a) for a in args))
+
+builtins.print = _print
+
 app = Flask(__name__)
+
+
+@app.route('/health')
+def health():
+    return 'OK', 200
 
 def create_sample_letter(text: str, output_path: str):
     c = canvas.Canvas(output_path)

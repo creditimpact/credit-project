@@ -9,39 +9,44 @@ const authRoutes = require('./routes/auth');
 const authMiddleware = require('./middleware/auth');
 const { getSignedUrl } = require('./utils/files');
 const { acquireLock, releaseLock } = require('./utils/cronLock');
+const logger = require('./utils/logger');
+const loadSecrets = require('./utils/loadSecrets');
 
 function resolveMode(value) {
   return String(value || '').toLowerCase().startsWith('test') ? 'testing' : 'real';
 }
 
-const DEFAULT_MODE = resolveMode(process.env.APP_MODE || 'real');
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
+async function start() {
+  await loadSecrets();
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+  const DEFAULT_MODE = resolveMode(process.env.APP_MODE || 'real');
+  const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 
-// Middleware
-app.use(cors({ origin: ALLOWED_ORIGIN }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  const app = express();
+  const PORT = process.env.PORT || 5000;
 
-// Basic env validation
-['MONGO_URI', 'BOT_PROCESS_URL', 'BOT_START_URL'].forEach((key) => {
-  if (!process.env[key]) {
-    console.warn(`⚠️  Missing environment variable: ${key}`);
-  }
-});
+  // Middleware
+  app.use(cors({ origin: ALLOWED_ORIGIN }));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('✅ MongoDB connected!');
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => console.log(err));
+  // Basic env validation
+  ['MONGO_URI', 'BOT_PROCESS_URL', 'BOT_START_URL'].forEach((key) => {
+    if (!process.env[key]) {
+      logger.warn('Missing environment variable', { key });
+    }
+  });
+
+  // MongoDB connection
+  mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => {
+      logger.info('MongoDB connected');
+      app.listen(PORT, () => {
+        logger.info('Server running', { url: `http://localhost:${PORT}` });
+      });
+    })
+    .catch((err) => logger.error('Mongo connection error', { error: err.message }));
 
 // Routes
 const customersRoutes = require('./routes/customers');
@@ -57,9 +62,12 @@ app.use('/api/files', filesRoutes); // auth inside route
 // Bot routes handle their own authentication
 app.use('/api/bot', botRoutes);
 
-// simple health endpoint
+// simple health endpoints
 app.get('/api/status', (req, res) => {
   res.json({ status: 'ok' });
+});
+app.get('/health', (req, res) => {
+  res.send('OK');
 });
 
 // Serve local uploads only when no S3 bucket is configured
@@ -78,7 +86,7 @@ app.use((req, res, next) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err);
+  logger.error('Unhandled error', { error: err.message });
   res.status(500).json({ error: err.message || 'Server error' });
 });
 
@@ -87,7 +95,7 @@ app.use((err, req, res, next) => {
 if (process.env.ENABLE_CRON === 'true') {
   cron.schedule('*/5 * * * *', async () => {
     if (!(await acquireLock())) {
-      console.log('Cron job locked, skipping');
+      logger.info('Cron job locked, skipping');
       return;
     }
     try {
@@ -108,19 +116,19 @@ if (process.env.ENABLE_CRON === 'true') {
     const required = ['customerName', 'phone', 'email', 'address'];
     const missing = required.filter((f) => !customer[f]);
     if (missing.length) {
-      console.warn(`Skipping customer ${customer._id}. Missing: ${missing.join(', ')}`);
+      logger.warn('Skipping customer due to missing fields', { id: customer._id, missing });
       return;
     }
 
     if (!customer.creditReport) {
-      console.log(`Skipping bot for ${customer.customerName}: missing credit report`);
+      logger.info('Skipping bot missing credit report', { name: customer.customerName });
       return;
     }
 
     customer.botStatus = 'processing';
     customer.botError = undefined;
     await customer.save();
-    console.log(`Set customer ${customer._id} botStatus to processing`);
+    logger.info('Set botStatus to processing', { id: customer._id });
 
     const payload = {
       clientId: customer._id,
@@ -143,18 +151,22 @@ if (process.env.ENABLE_CRON === 'true') {
       await axios.post(process.env.BOT_PROCESS_URL, payload, {
         headers: { 'X-App-Mode': DEFAULT_MODE },
       });
-      console.log(`Sent to bot via cron (${DEFAULT_MODE}) for ${customer.customerName}`);
+      logger.info('Sent to bot via cron', { mode: DEFAULT_MODE, name: customer.customerName });
     } catch (err) {
-      console.error('Cron bot request failed:', err.message);
+      logger.error('Cron bot request failed', { error: err.message });
       customer.botStatus = 'failed';
       customer.botError = err.message;
       await customer.save();
-      console.log(`Set customer ${customer._id} botStatus to failed`);
+      logger.info('Set customer botStatus to failed', { id: customer._id });
     }
   } catch (err) {
-    console.error('Cron job error:', err);
+    logger.error('Cron job error', { error: err.message });
   } finally {
     await releaseLock();
   }
   });
 }
+
+}
+start();
+

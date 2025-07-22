@@ -3,6 +3,7 @@ const AWS = require('aws-sdk');
 const fs = require('fs');
 const path = require('path');
 const router = express.Router();
+const logger = require('../utils/logger');
 
 const auth = require('../middleware/auth');
 
@@ -61,7 +62,7 @@ router.delete('/delete', async (req, res) => {
     }
     res.json({ message: 'File deleted' });
   } catch (err) {
-    console.error(err);
+    logger.error('File delete failed', { error: err.message });
     res.status(500).json({ error: 'Delete failed' });
   }
 });

@@ -5,6 +5,7 @@ const Customer = require('../models/Customer');
 const authMiddleware = require('../middleware/auth');
 const botAuth = require('../middleware/authBot');
 const { getSignedUrl } = require('../utils/files');
+const logger = require('../utils/logger');
 
 function getMode(req) {
   const value =
@@ -22,14 +23,14 @@ const updateStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   const mode = getMode(req);
-  console.log(`Mode for bot request: ${mode}`);
+  logger.info('Bot request mode', { mode });
 
   try {
     const customer = await Customer.findById(id);
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
 
     if (status === 'In Progress' && !customer.creditReport) {
-      console.log(`Skipping bot for ${customer.customerName}: missing credit report`);
+      logger.info('Skipping bot for customer: missing credit report', { id: customer._id });
       return res.status(400).json({ error: 'Credit report must be uploaded before processing' });
     }
 
@@ -56,26 +57,26 @@ const updateStatus = async (req, res) => {
       customer.botStatus = 'processing';
       customer.botError = undefined;
       await customer.save();
-      console.log(`Set customer ${customer._id} botStatus to processing`);
+      logger.info('Set botStatus to processing', { id: customer._id });
 
       payload.mode = mode;
       try {
         await axios.post(BOT_PROCESS_URL, payload, {
           headers: { 'X-App-Mode': mode },
         });
-        console.log(`Sent to bot (${mode}) for customer ${customer.customerName}`);
+        logger.info('Sent to bot for customer', { mode, name: customer.customerName });
       } catch (err) {
-        console.error('Bot request failed:', err.message);
+        logger.error('Bot request failed', { error: err.message });
         customer.botStatus = 'failed';
         customer.botError = err.message;
         await customer.save();
-        console.log(`Set customer ${customer._id} botStatus to failed`);
+        logger.info('Set customer botStatus to failed', { id: customer._id });
       }
     }
 
     res.json({ message: 'Status updated', customer });
   } catch (error) {
-    console.error('Error updating status or sending to bot:', error);
+    logger.error('Error updating status or sending to bot', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 };
@@ -97,10 +98,10 @@ router.post('/result', botAuth, async (req, res) => {
 
     const customer = await Customer.findByIdAndUpdate(clientId, update, { new: true });
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
-    console.log(`Set customer ${customer._id} botStatus to ${update.botStatus}`);
+    logger.info('Updated customer botStatus', { id: customer._id, status: update.botStatus });
     res.json({ message: 'Customer updated', customer });
   } catch (err) {
-    console.error('Error saving bot results:', err);
+    logger.error('Error saving bot results', { error: err.message });
     res.status(500).json({ error: err.message });
   }
 });

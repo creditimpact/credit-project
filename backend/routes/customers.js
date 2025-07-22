@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const AWS = require('aws-sdk');
 const Customer = require('../models/Customer');
+const logger = require('../utils/logger');
 
 const objectIdPattern = /^[a-f0-9]{24}$/i;
 
@@ -168,7 +169,7 @@ router.delete('/:id', async (req, res) => {
           try {
             await s3.deleteObject({ Bucket: process.env.AWS_S3_BUCKET, Key: lkey }).promise();
           } catch (e) {
-            console.error('Failed to delete letter', lkey, e.message);
+            logger.error('Failed to delete letter', { key: lkey, error: e.message });
           }
         } else {
           const lp = path.join('uploads', lkey);
@@ -191,7 +192,7 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Customer deleted' });
   } catch (err) {
-    console.error(err);
+    logger.error('Delete customer failed', { error: err.message });
     res.status(500).json({ error: err.message });
   }
 });
