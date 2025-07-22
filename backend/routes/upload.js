@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const AWS = require('aws-sdk');
 const Customer = require('../models/Customer');
+const logger = require('../utils/logger');
 
 const objectIdPattern = /^[a-f0-9]{24}$/i;
 
@@ -51,7 +52,7 @@ router.post('/:id', (req, res) => {
       if (err.code === 'LIMIT_UNEXPECTED_FILE') msg = 'Invalid file type';
       return res.status(400).json({ error: msg });
     } else if (err) {
-      console.error(err);
+      logger.error('Upload middleware error', { error: err.message });
       return res.status(500).json({ error: 'Upload failed' });
     }
 
@@ -88,7 +89,7 @@ router.post('/:id', (req, res) => {
 
     res.json({ message: 'File uploaded', key });
   } catch (err) {
-    console.error(err);
+    logger.error('Upload failed', { error: err.message });
     res.status(500).json({ error: 'Upload failed' });
   }
   });
@@ -122,7 +123,7 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Credit report deleted' });
   } catch (err) {
-    console.error(err);
+    logger.error('Delete failed', { error: err.message });
     res.status(500).json({ error: 'Delete failed' });
   }
 });

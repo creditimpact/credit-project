@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.JWT_SECRET;
+const logger = require('../utils/logger');
 
 module.exports = function (req, res, next) {
   const authHeader = req.headers.authorization || '';
@@ -15,10 +16,10 @@ module.exports = function (req, res, next) {
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
-      console.error('JWT verification error:', err);
+      logger.error('JWT verification error', { error: err.message });
       return res.status(401).json({ error: 'Token expired' });
     }
-    console.error('JWT verification error:', err);
+    logger.error('JWT verification error', { error: err.message });
     return res.status(401).json({ error: 'Invalid token' });
   }
 };

@@ -8,7 +8,8 @@ module.exports = function (req, res, next) {
 
   const token = authHeader.split(' ')[1];
   if (!BOT_TOKEN) {
-    console.error('BOT_TOKEN not configured');
+    const logger = require('../utils/logger');
+    logger.error('BOT_TOKEN not configured');
     return res.status(500).json({ error: 'Server misconfigured' });
   }
 

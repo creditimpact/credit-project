@@ -25,6 +25,9 @@ npm install
 npm start
 ```
 
+The backend exposes a `/health` route that returns `OK`. Use it for container health checks in production.
+All server logs are written in structured form to stdout/stderr so they can be collected by container platforms.
+
 ### ✅ Bot Service (Python)
 
 Service that receives credit report URLs, processes them, generates letters, uploads them to storage, and sends back links to the backend.
@@ -46,6 +49,8 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+The bot service also provides a `/health` route for health checks.
 
 ### ✅ Frontend (React)
 
@@ -88,6 +93,10 @@ values for your setup.
 ### Frontend
 
 - `REACT_APP_BACKEND_URL` — base URL for the backend API (leave empty for same-origin)
+
+### AWS Secrets Manager
+
+Both services can optionally load secrets from AWS Secrets Manager. Set `AWS_SECRET_NAME` (or `AWS_SECRETS_NAME`) to the name of the secret containing key/value pairs. Any variables not already set in the environment will be loaded from the secret. When the secret cannot be fetched, the services continue using values from `.env` files and `os.environ`.
 
 ## 📂 Uploads structure
 
