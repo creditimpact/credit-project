@@ -18,7 +18,12 @@ router.use(auth);
 
 router.get('/get-signed-url', (req, res) => {
   const key = req.query.key;
-  if (!key || key === 'undefined')
+  if (
+    !key ||
+    key === 'undefined' ||
+    key.includes('..') ||
+    path.isAbsolute(key)
+  )
     return res.status(400).json({ error: 'Invalid key' });
 
   if (/^https?:\/\//i.test(key)) {
@@ -42,6 +47,8 @@ router.get('/get-signed-url', (req, res) => {
 router.delete('/delete', async (req, res) => {
   const key = req.query.key;
   if (!key) return res.status(400).json({ error: 'Missing key' });
+  if (key.includes('..') || path.isAbsolute(key))
+    return res.status(400).json({ error: 'Invalid key' });
 
   try {
     if (s3) {

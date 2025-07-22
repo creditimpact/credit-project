@@ -51,3 +51,10 @@ test('rejects literal "undefined"', async () => {
     assert.strictEqual(status, 400);
   });
 });
+
+test('rejects suspicious key', async () => {
+  await withRouter(async (app) => {
+    const { status } = await requestJson(app, 'DELETE', '/delete?key=../secret');
+    assert.strictEqual(status, 400);
+  });
+});
