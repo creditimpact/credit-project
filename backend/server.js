@@ -81,8 +81,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message || 'Server error' });
 });
 
-// Cron job to process one customer from the "Work Today" list every 5 minutes
-cron.schedule('*/5 * * * *', async () => {
+// Cron job disabled in production. Use API calls to trigger the bot manually.
+/* cron.schedule('*/5 * * * *', async () => {
   try {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
@@ -147,4 +147,4 @@ cron.schedule('*/5 * * * *', async () => {
   } catch (err) {
     console.error('Cron job error:', err);
   }
-});
+}); */

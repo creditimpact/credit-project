@@ -15,7 +15,6 @@ def send_results(client_id: str, letters: list[dict], error: str | None = None):
     bot_token = os.getenv("BOT_TOKEN")
     if bot_token:
         headers["Authorization"] = f"Bearer {bot_token}"
-    print("[send_results] Sending headers:", headers)
     try:
         resp = requests.post(url, json=payload, headers=headers, timeout=10)
         resp.raise_for_status()

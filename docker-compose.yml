@@ -10,18 +10,20 @@ services:
   backend:
     build: ./backend
     environment:
-      MONGO_URI: mongodb://mongo:27017/creditdb
-      PORT: 5000
-      BOT_PROCESS_URL: http://bot:6000/api/bot/process
-      BOT_START_URL: http://bot:6000/start
-      APP_MODE: real
-      JWT_SECRET: supersecret
-      ADMIN_USER: admin
-      ADMIN_PASS: change-me
-      AWS_REGION: us-east-1
-      AWS_S3_BUCKET: bucket
-      AWS_ACCESS_KEY_ID: dummy
-      AWS_SECRET_ACCESS_KEY: dummy
+      MONGO_URI: ${MONGO_URI}
+      PORT: ${PORT}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
+      BOT_PROCESS_URL: ${BOT_PROCESS_URL}
+      BOT_START_URL: ${BOT_START_URL}
+      APP_MODE: ${APP_MODE}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASS_HASH: ${ADMIN_PASS_HASH}
+      BOT_TOKEN: ${BOT_TOKEN}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
     ports:
       - "5000:5000"
     depends_on:
@@ -31,13 +33,14 @@ services:
   bot:
     build: ./bot_service
     environment:
-      PORT: 6000
-      BACKEND_URL: http://backend:5000
-      BOT_TOKEN: token
-      AWS_REGION: us-east-1
-      AWS_S3_BUCKET: bucket
-      AWS_ACCESS_KEY_ID: dummy
-      AWS_SECRET_ACCESS_KEY: dummy
+      PORT: ${PORT_BOT:-6000}
+      BACKEND_URL: ${BACKEND_URL}
+      BOT_TOKEN: ${BOT_TOKEN}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
       - "6000:6000"
     depends_on:
@@ -50,7 +53,7 @@ services:
       - ./credit-dashboard:/app
     command: sh -c "npm install && npm run build && npx serve -s build -l 3000"
     environment:
-      REACT_APP_BACKEND_URL: http://localhost:5000
+      REACT_APP_BACKEND_URL: ${BACKEND_URL}
     ports:
       - "3000:3000"
     depends_on:
