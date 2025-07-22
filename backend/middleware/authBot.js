@@ -2,7 +2,6 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 
 module.exports = function (req, res, next) {
   const authHeader = req.headers.authorization || '';
-  console.log('[botAuth] header:', req.headers.authorization, 'expected:', BOT_TOKEN);
   if (!authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

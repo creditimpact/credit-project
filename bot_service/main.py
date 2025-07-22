@@ -50,9 +50,6 @@ def process():
     logger.info("Processing report for client %s in %s mode", client_id, mode)
 
     try:
-        # הדפסת BOT_TOKEN לצורך debugging
-        BOT_TOKEN = os.getenv("BOT_TOKEN")
-        print("📢 BOT_TOKEN = ", BOT_TOKEN)
 
         # Download credit report
         logger.info("Downloading report from %s", report_url)
