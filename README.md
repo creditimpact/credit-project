@@ -78,6 +78,7 @@ values for your setup.
 - `BOT_START_URL` — endpoint to start or ping the bot service
 - `APP_MODE` — "real" or "testing" to control how the bot generates letters
 - `AWS_REGION`, `AWS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — storage credentials
+- `AWS_SECRET_NAME` (or `AWS_SECRETS_NAME`) — name of the AWS Secrets Manager secret to load
 - `JWT_SECRET` — secret key for signing JSON Web Tokens
 - `ADMIN_USER` — default admin username
 - `ADMIN_PASS_HASH` — scrypt hash of the admin password in the form `salt$hash`
@@ -88,6 +89,7 @@ values for your setup.
 - `BACKEND_URL` — URL to the backend callback endpoint
  - `BOT_TOKEN` — shared secret used when the bot service calls `/api/bot/*`
 - The same AWS variables as above if uploading to the same bucket
+- `AWS_SECRET_NAME` (or `AWS_SECRETS_NAME`) — name of the AWS Secrets Manager secret to load
 - Any additional API keys (e.g., OpenAI) placed in `.env`
 
 ### Frontend
