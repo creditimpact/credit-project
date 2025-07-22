@@ -76,7 +76,7 @@ values for your setup.
 - `JWT_SECRET` — secret key for signing JSON Web Tokens
 - `ADMIN_USER` — default admin username
 - `ADMIN_PASS_HASH` — scrypt hash of the admin password in the form `salt$hash`
-- `ENABLE_CRON` — set to `true` to run the optional scheduled job
+- `ENABLE_CRON` — set to `true` to run the optional scheduled job. Enable this on only one backend instance or use a locking mechanism to avoid duplicate runs.
 
 ### Bot
 

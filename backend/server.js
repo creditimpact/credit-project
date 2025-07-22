@@ -8,6 +8,7 @@ const Customer = require('./models/Customer');
 const authRoutes = require('./routes/auth');
 const authMiddleware = require('./middleware/auth');
 const { getSignedUrl } = require('./utils/files');
+const { acquireLock, releaseLock } = require('./utils/cronLock');
 
 function resolveMode(value) {
   return String(value || '').toLowerCase().startsWith('test') ? 'testing' : 'real';
@@ -85,11 +86,15 @@ app.use((err, req, res, next) => {
 // It is enabled only when ENABLE_CRON=true is set in the environment.
 if (process.env.ENABLE_CRON === 'true') {
   cron.schedule('*/5 * * * *', async () => {
-  try {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
+    if (!(await acquireLock())) {
+      console.log('Cron job locked, skipping');
+      return;
+    }
+    try {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 1);
 
     const customer = await Customer.findOne({
       startDate: { $gte: start, $lt: end },
@@ -148,6 +153,8 @@ if (process.env.ENABLE_CRON === 'true') {
     }
   } catch (err) {
     console.error('Cron job error:', err);
+  } finally {
+    await releaseLock();
   }
   });
 }
