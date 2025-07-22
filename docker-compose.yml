@@ -9,6 +9,9 @@ services:
 
   backend:
     build: ./backend
+    # Share local uploads with the bot service when not using S3
+    volumes:
+      - ./backend/uploads:/app/uploads
     environment:
       MONGO_URI: ${MONGO_URI}
       PORT: ${PORT}
@@ -33,6 +36,8 @@ services:
 
   bot:
     build: ./bot_service
+    volumes:
+      - ./backend/uploads:/app/backend/uploads
     environment:
       PORT: ${PORT_BOT:-6000}
       BACKEND_URL: ${BACKEND_URL}
