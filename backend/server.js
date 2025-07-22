@@ -81,8 +81,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message || 'Server error' });
 });
 
-// Cron job disabled in production. Use API calls to trigger the bot manually.
-/* cron.schedule('*/5 * * * *', async () => {
+// Optional cron job to send one pending customer to the bot every 5 minutes.
+// It is enabled only when ENABLE_CRON=true is set in the environment.
+if (process.env.ENABLE_CRON === 'true') {
+  cron.schedule('*/5 * * * *', async () => {
   try {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
@@ -147,4 +149,5 @@ app.use((err, req, res, next) => {
   } catch (err) {
     console.error('Cron job error:', err);
   }
-}); */
+  });
+}
