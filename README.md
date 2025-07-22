@@ -128,6 +128,12 @@ docker-compose up --build
 Edit the environment variables in the compose file if you need to adjust
 connections or credentials.
 
+When running the stack without Amazon S3 you must make sure that the
+`backend/uploads` directory is shared between the backend and bot service so
+that uploaded files are accessible to both containers. Either configure the AWS
+S3 variables in `.env` or mount the folder as a volume as shown in the compose
+file.
+
 ## ✅ Testing
 
 - Make sure all three servers run without errors.
