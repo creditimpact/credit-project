@@ -150,6 +150,8 @@ connections or credentials.
 2. **Create an ECS service or Elastic Beanstalk environment** using the pushed
    images. Set the same environment variables shown in `docker-compose.yml`.
    MongoDB can be provided by an Atlas cluster or a self‑hosted container.
+   When running containers, use internal URLs such as `http://backend:5000` for
+   `BACKEND_URL` and `http://bot:6000` for the bot service endpoints.
 
 3. **Deploy updates** by rebuilding the images, pushing them to ECR and
    redeploying the service.
